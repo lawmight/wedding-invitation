@@ -53,7 +53,8 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
   const debugInfo = useMemo(() => amapKey ? `Key: ${amapKey.substring(0, 4)}...` : 'No AMAP key', [amapKey]);
 
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [mapError, setMapError] = useState(!amapKey || !amapSecurityCode);
+  const [mapError, setMapError] = useState(false);
+  const hasAmapKeys = !!(amapKey && amapSecurityCode);
   // 배차 안내 펼침/접기 상태 관리
   const [expandedShuttle, setExpandedShuttle] = useState<'groom' | 'bride' | null>(null);
   
@@ -232,12 +233,13 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
         <VenueTel href={`tel:${weddingConfig.venue.tel}`}>{weddingConfig.venue.tel}</VenueTel>
       </VenueInfo>
       
-      {mapError ? (
+      {(!hasAmapKeys || mapError) ? (
         renderStaticMap()
       ) : (
-        <MapContainer ref={mapRef} id={AMAP_CONTAINER_ID}>
+        <div style={{ position: 'relative' }}>
+          <MapContainer ref={mapRef} id={AMAP_CONTAINER_ID} />
           {!mapLoaded && <MapLoading>Loading map...{debugInfo}</MapLoading>}
-        </MapContainer>
+        </div>
       )}
       
       <NavigateButtonsContainer>
