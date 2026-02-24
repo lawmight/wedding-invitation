@@ -9,7 +9,7 @@
     "build:turbo": "next build --turbopack",
     "build:fresh": "npm run prebuild && npm run build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
     "framer-motion": "^12.12.1",

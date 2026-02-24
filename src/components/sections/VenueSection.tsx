@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { weddingConfig } from '../../config/wedding-config';
 
@@ -48,9 +48,12 @@ interface VenueSectionProps {
 
 const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
+  const amapKey = process.env.NEXT_PUBLIC_AMAP_KEY || '';
+  const amapSecurityCode = process.env.NEXT_PUBLIC_AMAP_SECURITY_JS_CODE || '';
+  const debugInfo = useMemo(() => amapKey ? `Key: ${amapKey.substring(0, 4)}...` : 'No AMAP key', [amapKey]);
+
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<string>('');
-  const [mapError, setMapError] = useState(false);
+  const [mapError, setMapError] = useState(!amapKey || !amapSecurityCode);
   // 배차 안내 펼침/접기 상태 관리
   const [expandedShuttle, setExpandedShuttle] = useState<'groom' | 'bride' | null>(null);
   
@@ -62,18 +65,10 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
       setExpandedShuttle(shuttle);
     }
   };
-  
-  const amapKey = process.env.NEXT_PUBLIC_AMAP_KEY || '';
-  const amapSecurityCode = process.env.NEXT_PUBLIC_AMAP_SECURITY_JS_CODE || '';
-
-  useEffect(() => {
-    setDebugInfo(amapKey ? `Key: ${amapKey.substring(0, 4)}...` : 'No AMAP key');
-  }, [amapKey]);
 
   // AMAP (高德地图) JS API load via Loader
   useEffect(() => {
     if (!amapKey || !amapSecurityCode) {
-      setMapError(true);
       return;
     }
 
@@ -83,7 +78,7 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
           key: amapKey,
           version: '2.0',
         })
-          .then((AMap) => {
+          .then(() => {
             setMapLoaded(true);
           })
           .catch((e: unknown) => {
@@ -115,9 +110,10 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
 
     loadAMap();
 
+    const mapEl = mapRef.current;
     return () => {
-      if (mapRef.current) {
-        mapRef.current.innerHTML = '';
+      if (mapEl) {
+        mapEl.innerHTML = '';
       }
     };
   }, [amapKey, amapSecurityCode]);

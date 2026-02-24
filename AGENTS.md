@@ -13,9 +13,9 @@ This is a **Next.js 16 (App Router)** wedding invitation single-page web app usi
 | Build | `npm run build` |
 | Type check | `npx tsc --noEmit` |
 
-### Lint caveat
+### Linting
 
-The `npm run lint` script invokes `next lint`, which was **removed in Next.js 16**. Additionally, the project uses a legacy `.eslintrc.json` file that is incompatible with the installed ESLint 9 (which requires flat config `eslint.config.js`). Until the project migrates its lint config, use `npx tsc --noEmit` for type checking.
+`npm run lint` runs ESLint with flat config (`eslint.config.mjs`). `npx tsc --noEmit` runs the TypeScript type checker.
 
 ### Environment variables
 
