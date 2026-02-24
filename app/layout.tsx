@@ -13,6 +13,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="icon" href="/favicon.png" type="image/png" />
         <title>{weddingConfig.meta.title}</title>
         <meta name="description" content={weddingConfig.meta.description} />
         <meta property="og:title" content={weddingConfig.meta.title} />
