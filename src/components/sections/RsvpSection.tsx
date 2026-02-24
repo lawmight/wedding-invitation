@@ -70,7 +70,7 @@ const RsvpSection = ({ bgColor = 'white' }: RsvpSectionProps) => {
     if (!formData.name || formData.isAttending === null || !formData.side) {
       setSubmitStatus({
         success: false,
-        message: '이름, 참석 여부, 신부/신랑측 여부를 모두 입력해주세요.',
+        message: 'Please enter your name, attendance, and side.',
       });
       return;
     }
@@ -78,7 +78,7 @@ const RsvpSection = ({ bgColor = 'white' }: RsvpSectionProps) => {
     if (showMealOption && formData.isAttending && formData.hasMeal === null) {
       setSubmitStatus({
         success: false,
-        message: '식사 여부를 선택해주세요.',
+        message: 'Please select your meal preference.',
       });
       return;
     }
@@ -108,7 +108,7 @@ const RsvpSection = ({ bgColor = 'white' }: RsvpSectionProps) => {
       if (response.ok) {
         setSubmitStatus({
           success: true,
-          message: '참석 여부가 성공적으로 전송되었습니다. 감사합니다.',
+          message: 'Your RSVP has been sent successfully. Thank you.',
         });
         setFormData({
           name: '',
@@ -124,7 +124,7 @@ const RsvpSection = ({ bgColor = 'white' }: RsvpSectionProps) => {
       console.error('RSVP 제출 오류:', error);
       setSubmitStatus({
         success: false,
-        message: '참석 여부 전송 중 오류가 발생했습니다. 다시 시도해 주세요.',
+        message: 'An error occurred while sending your RSVP. Please try again.',
       });
     } finally {
       setIsSubmitting(false);
@@ -133,12 +133,12 @@ const RsvpSection = ({ bgColor = 'white' }: RsvpSectionProps) => {
 
   return (
     <RsvpSectionContainer $bgColor={bgColor}>
-      <SectionTitle>참석 여부 회신</SectionTitle>
+      <SectionTitle>RSVP</SectionTitle>
       
       <RsvpDescription>
-        소중한 날에 함께해 주실 수 있는지 알려주세요.<br />
-        정성을 다해 준비할 수 있도록<br />
-        참석 여부를 알려주시면 진심으로 감사하겠습니다.
+        Please let us know if you can join us on our special day.<br />
+        Your response will help us prepare for your celebration.<br />
+        We sincerely thank you.
       </RsvpDescription>
       
       {submitStatus && (
@@ -149,55 +149,55 @@ const RsvpSection = ({ bgColor = 'white' }: RsvpSectionProps) => {
       
       <RsvpForm onSubmit={handleSubmit}>
         <FormGroup>
-          <Label htmlFor="name">이름</Label>
+          <Label htmlFor="name">Name</Label>
           <Input
             type="text"
             id="name"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            placeholder="이름을 입력해 주세요"
+            placeholder="Enter your name"
             required
           />
         </FormGroup>
         
         <FormRow>
           <FormColumn>
-            <Label as="p">신랑/신부측</Label>
+            <Label as="p">Side</Label>
             <AttendanceButtons>
               <AttendanceButton 
                 type="button"
                 $selected={formData.side === 'GROOM'}
                 onClick={() => handleSideChange('GROOM')}
               >
-                신랑측
+                Groom&apos;s side
               </AttendanceButton>
               <AttendanceButton 
                 type="button"
                 $selected={formData.side === 'BRIDE'}
                 onClick={() => handleSideChange('BRIDE')}
               >
-                신부측
+                Bride&apos;s side
               </AttendanceButton>
             </AttendanceButtons>
           </FormColumn>
 
           <FormColumn>
-            <Label as="p">참석 여부</Label>
+            <Label as="p">Attendance</Label>
             <AttendanceButtons>
               <AttendanceButton 
                 type="button"
                 $selected={formData.isAttending === true}
                 onClick={() => handleAttendingChange(true)}
               >
-                참석
+                Attending
               </AttendanceButton>
               <AttendanceButton 
                 type="button"
                 $selected={formData.isAttending === false}
                 onClick={() => handleAttendingChange(false)}
               >
-                불참
+                Not attending
               </AttendanceButton>
             </AttendanceButtons>
           </FormColumn>
@@ -206,7 +206,7 @@ const RsvpSection = ({ bgColor = 'white' }: RsvpSectionProps) => {
         {formData.isAttending && (
           <FormRow>
             <FormColumn>
-              <Label htmlFor="guestCount">참석 인원</Label>
+              <Label htmlFor="guestCount">Number of guests</Label>
               <Select
                 id="guestCount"
                 name="guestCount"
@@ -215,7 +215,7 @@ const RsvpSection = ({ bgColor = 'white' }: RsvpSectionProps) => {
               >
                 {[1, 2, 3, 4, 5].map((num) => (
                   <option key={num} value={num}>
-                    {num}명
+                    {num} {num === 1 ? 'guest' : 'guests'}
                   </option>
                 ))}
               </Select>
@@ -223,21 +223,21 @@ const RsvpSection = ({ bgColor = 'white' }: RsvpSectionProps) => {
             
             {showMealOption && (
               <FormColumn>
-                <Label as="p">식사 여부</Label>
+                <Label as="p">Meal</Label>
                 <AttendanceButtons>
                   <AttendanceButton 
                     type="button"
                     $selected={formData.hasMeal === true}
                     onClick={() => handleMealChange(true)}
                   >
-                    식사 함
+                    Having meal
                   </AttendanceButton>
                   <AttendanceButton 
                     type="button"
                     $selected={formData.hasMeal === false}
                     onClick={() => handleMealChange(false)}
                   >
-                    식사 안 함
+                    No meal
                   </AttendanceButton>
                 </AttendanceButtons>
               </FormColumn>
@@ -246,7 +246,7 @@ const RsvpSection = ({ bgColor = 'white' }: RsvpSectionProps) => {
         )}
         
         <SubmitButton type="submit" disabled={isSubmitting}>
-          {isSubmitting ? '전송 중...' : '회신하기'}
+          {isSubmitting ? 'Sending...' : 'Send RSVP'}
         </SubmitButton>
       </RsvpForm>
     </RsvpSectionContainer>

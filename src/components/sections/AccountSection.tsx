@@ -70,7 +70,7 @@ const AccountSection = ({ bgColor = 'white' }: AccountSectionProps) => {
   const shareWebsite = async () => {
     const shareData = {
       title: weddingConfig.meta.title,
-      text: `${weddingConfig.invitation.groom.name} ♥ ${weddingConfig.invitation.bride.name}의 결혼식에 초대합니다`,
+      text: `${weddingConfig.invitation.groom.name} ♥ ${weddingConfig.invitation.bride.name} invite you to their wedding`,
       url: window.location.href,
     };
     
@@ -80,7 +80,7 @@ const AccountSection = ({ bgColor = 'white' }: AccountSectionProps) => {
       } else {
         // 공유 API를 지원하지 않는 경우 URL 복사로 대체
         copyWebsiteUrl();
-        alert('이 브라우저는 공유 기능을 지원하지 않습니다. URL이 복사되었습니다.');
+        alert('This browser does not support sharing. The URL has been copied.');
       }
     } catch (error) {
       console.error('공유 실패:', error);
@@ -137,7 +137,7 @@ const AccountSection = ({ bgColor = 'white' }: AccountSectionProps) => {
             copyToClipboard(copyText, person);
           }}
         >
-          {copyStatus[person] ? '복사 완료' : '복사'}
+          {copyStatus[person] ? 'Copied' : 'Copy'}
         </CopyButton>
       </AccountRow>
     );
@@ -145,13 +145,13 @@ const AccountSection = ({ bgColor = 'white' }: AccountSectionProps) => {
 
   return (
     <AccountSectionContainer $bgColor={bgColor}>
-      <SectionTitle>마음 전하실 곳</SectionTitle>
+      <SectionTitle>Gift / Bank details</SectionTitle>
       
       <AccountCards>
         {/* 신랑측 계좌 카드 */}
         <AccountCard onClick={() => toggleSide('groom')}>
           <AccountCardHeader $isExpanded={expandedSide === 'groom'}>
-            <GroupTitle>신랑 측 계좌번호</GroupTitle>
+            <GroupTitle>Groom's account</GroupTitle>
             <ExpandIcon $isExpanded={expandedSide === 'groom'}>
               {expandedSide === 'groom' ? '−' : '+'}
             </ExpandIcon>
@@ -159,9 +159,9 @@ const AccountSection = ({ bgColor = 'white' }: AccountSectionProps) => {
           
           {expandedSide === 'groom' && (
             <AccountRowsContainer>
-              {renderAccountRow(weddingConfig.account.groom, 'groom', '신랑')}
-              {renderAccountRow(weddingConfig.account.groomFather, 'groomFather', '아버지')}
-              {renderAccountRow(weddingConfig.account.groomMother, 'groomMother', '어머니')}
+              {renderAccountRow(weddingConfig.account.groom, 'groom', 'Groom')}
+              {renderAccountRow(weddingConfig.account.groomFather, 'groomFather', 'Father')}
+              {renderAccountRow(weddingConfig.account.groomMother, 'groomMother', 'Mother')}
             </AccountRowsContainer>
           )}
         </AccountCard>
@@ -169,7 +169,7 @@ const AccountSection = ({ bgColor = 'white' }: AccountSectionProps) => {
         {/* 신부측 계좌 카드 */}
         <AccountCard onClick={() => toggleSide('bride')}>
           <AccountCardHeader $isExpanded={expandedSide === 'bride'}>
-            <GroupTitle>신부 측 계좌번호</GroupTitle>
+            <GroupTitle>Bride's account</GroupTitle>
             <ExpandIcon $isExpanded={expandedSide === 'bride'}>
               {expandedSide === 'bride' ? '−' : '+'}
             </ExpandIcon>
@@ -177,9 +177,9 @@ const AccountSection = ({ bgColor = 'white' }: AccountSectionProps) => {
           
           {expandedSide === 'bride' && (
             <AccountRowsContainer>
-              {renderAccountRow(weddingConfig.account.bride, 'bride', '신부')}
-              {renderAccountRow(weddingConfig.account.brideFather, 'brideFather', '아버지')}
-              {renderAccountRow(weddingConfig.account.brideMother, 'brideMother', '어머니')}
+              {renderAccountRow(weddingConfig.account.bride, 'bride', 'Bride')}
+              {renderAccountRow(weddingConfig.account.brideFather, 'brideFather', 'Father')}
+              {renderAccountRow(weddingConfig.account.brideMother, 'brideMother', 'Mother')}
             </AccountRowsContainer>
           )}
         </AccountCard>
@@ -188,10 +188,10 @@ const AccountSection = ({ bgColor = 'white' }: AccountSectionProps) => {
       {/* 청첩장 공유하기 버튼 */}
       <ShareContainer>
         <ShareButton onClick={copyWebsiteUrl}>
-          {urlCopied ? '복사 완료!' : 'URL 복사하기'}
+          {urlCopied ? 'Copied!' : 'Copy URL'}
         </ShareButton>
         <ShareButton onClick={shareWebsite} $isShare={true}>
-          공유하기
+          Share
         </ShareButton>
       </ShareContainer>
     </AccountSectionContainer>

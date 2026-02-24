@@ -24,7 +24,7 @@ const Footer = () => {
           target="_blank"
           rel="noopener noreferrer"
         >
-          GitHub 저장소 바로가기
+          View on GitHub
         </GithubLink>
         <HiddenAttribution data-jwk-id={watermarkId}>
           NonCommercial

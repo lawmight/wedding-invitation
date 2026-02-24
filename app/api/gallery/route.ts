@@ -43,7 +43,7 @@ export async function GET() {
     console.error('갤러리 이미지 로드 오류:', error);
     return NextResponse.json(
       { 
-        error: '갤러리 이미지를 불러오는 중 오류가 발생했습니다.',
+        error: 'An error occurred while loading the gallery images.',
         images: weddingConfig.gallery.images // 에러 시 config 설정 반환
       }, 
       { status: 500 }

@@ -13,7 +13,7 @@ export async function POST(request: Request) {
           type: "header",
           text: {
             type: "plain_text",
-            text: "💌 새로운 참석 여부 응답",
+            text: "💌 New RSVP response",
             emoji: true
           }
         },
@@ -29,11 +29,11 @@ export async function POST(request: Request) {
       fields: [
         {
           type: "mrkdwn",
-          text: `*이름:* ${name} (${side || '미지정'})`
+          text: `*Name:* ${name} (${side || 'Not specified'})`
         },
         {
           type: "mrkdwn",
-          text: `*참석 여부:* ${isAttending ? '✅ 참석' : '❌ 불참'}`
+          text: `*Attendance:* ${isAttending ? '✅ Attending' : '❌ Not attending'}`
         }
       ]
     });
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
       const additionalFields = [
         {
           type: "mrkdwn",
-          text: `*참석 인원:* ${guestCount}명`
+          text: `*Number of guests:* ${guestCount}`
         }
       ];
       
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
       if (weddingConfig.rsvp.showMealOption) {
         additionalFields.push({
           type: "mrkdwn",
-          text: `*식사 여부:* ${hasMeal ? '✅ 식사 함' : '❌ 식사 안 함'}`
+          text: `*Meal:* ${hasMeal ? '✅ Having meal' : '❌ No meal'}`
         });
       }
       
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
       elements: [
         {
           type: "mrkdwn",
-          text: `접수 시간: ${koreanTimeString} (KST)`
+          text: `Received at: ${koreanTimeString} (KST)`
         }
       ]
     });
@@ -112,7 +112,7 @@ export async function POST(request: Request) {
     console.error('RSVP 처리 오류:', error);
     return NextResponse.json({ 
       success: false,
-      message: 'RSVP 처리 중 오류가 발생했습니다.' 
+      message: 'An error occurred while processing your RSVP.' 
     }, { status: 500 });
   }
 } 

@@ -13,7 +13,7 @@ const MainSection = () => {
       {}
       <BackgroundImage 
         src={weddingConfig.main.image}
-        alt="웨딩 배경 이미지"
+        alt="Wedding background image"
         fill
         priority
         sizes="100vw"

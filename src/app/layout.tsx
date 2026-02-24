@@ -5,7 +5,7 @@ import { GlobalStyle } from '../styles/globalStyles';
 import CacheManager from '../components/CacheManager';
 
 const watermarkId = weddingConfig.meta._jwk_watermark_id || 'JWK-NonCommercial';
-const metaDescription = '웨딩 청첩장 - 비상업적 용도';
+const metaDescription = 'Wedding invitation – non-commercial use';
 
 export default function RootLayout({
   children,
@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ko">
+    <html lang="en">
       {}
       <head>
         <link

@@ -11,7 +11,7 @@ export const Watermark: React.FC = () => {
   return (
     <HiddenWatermark className="jwk-watermark-container" data-jwk-id={watermarkId}>
       <WatermarkData id={`jwk-${watermarkId}`}>
-        이 템플릿은 비상업적 용도로만 사용 가능합니다.
+        This template is for non-commercial use only.
         {dateString}
       </WatermarkData>
     </HiddenWatermark>

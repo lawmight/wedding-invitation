@@ -67,7 +67,7 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
         const response = await fetch('/api/gallery');
         
         if (!response.ok) {
-          throw new Error('갤러리 이미지를 불러오는데 실패했습니다');
+          throw new Error('Failed to load gallery images');
         }
         
         const data = await response.json();
@@ -80,7 +80,7 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
         }
       } catch (err) {
         console.error('갤러리 이미지 로드 오류:', err);
-        setError('이미지를 불러오는데 문제가 발생했습니다');
+        setError('A problem occurred while loading the images');
         // 에러 발생 시 기본 설정 사용
         setImages(weddingConfig.gallery.images);
       } finally {
@@ -271,8 +271,8 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
   if (isLoading) {
     return (
       <GallerySectionContainer $bgColor={bgColor}>
-        <SectionTitle>갤러리</SectionTitle>
-        <LoadingContainer>이미지를 불러오는 중...</LoadingContainer>
+        <SectionTitle>Gallery</SectionTitle>
+        <LoadingContainer>Loading images...</LoadingContainer>
       </GallerySectionContainer>
     );
   }
@@ -280,9 +280,9 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
   if (error || images.length === 0) {
     return (
       <GallerySectionContainer $bgColor={bgColor}>
-        <SectionTitle>갤러리</SectionTitle>
+        <SectionTitle>Gallery</SectionTitle>
         <ErrorContainer>
-          {error || '갤러리 이미지가 없습니다'}
+          {error || 'No gallery images'}
         </ErrorContainer>
       </GallerySectionContainer>
     );
@@ -290,7 +290,7 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
   
   return (
     <GallerySectionContainer $bgColor={bgColor}>
-      <SectionTitle>갤러리</SectionTitle>
+      <SectionTitle>Gallery</SectionTitle>
       
       {galleryLayout === 'grid' ? (
         // 그리드 레이아웃
@@ -300,7 +300,7 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
               <GalleryGridImageWrapper>
                 <GalleryNextImage 
                   src={image}
-                  alt={`웨딩 갤러리 이미지 ${index + 1}`}
+                  alt={`Wedding gallery image ${index + 1}`}
                   fill
                   sizes="(max-width: 768px) calc(33.333vw - 1rem), calc(33.333vw - 2rem)"
                   quality={85}
@@ -316,7 +316,7 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
       ) : (
         // 스크롤 레이아웃 (기존)
         <GalleryContainer>
-          <GalleryButton onClick={scrollLeft} aria-label="이전 이미지들" className="left-button">
+          <GalleryButton onClick={scrollLeft} aria-label="Previous images" className="left-button">
             <ArrowLeftIcon />
           </GalleryButton>
           
@@ -326,7 +326,7 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
                 <GalleryImageWrapper>
                   <GalleryNextImage 
                     src={image}
-                    alt={`웨딩 갤러리 이미지 ${index + 1}`}
+                    alt={`Wedding gallery image ${index + 1}`}
                     fill
                     sizes="(max-width: 768px) 250px, 300px"
                     quality={85}
@@ -340,7 +340,7 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
             ))}
           </GalleryScrollContainer>
           
-          <GalleryButton onClick={scrollRight} aria-label="다음 이미지들" className="right-button">
+          <GalleryButton onClick={scrollRight} aria-label="Next images" className="right-button">
             <ArrowRightIcon />
           </GalleryButton>
         </GalleryContainer>
@@ -362,7 +362,7 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
             <ExpandedImageWrapper $isLoading={isExpandedImageLoading}>
               <Image 
                 src={expandedImage}
-                alt="확대된 웨딩 갤러리 이미지"
+                alt="Expanded wedding gallery image"
                 fill
                 sizes="90vw"
                 quality={90}
@@ -373,7 +373,7 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
                 onError={handleExpandedImageError}
               />
             </ExpandedImageWrapper>
-            <CloseButton onClick={handleCloseExpanded} aria-label="닫기">×</CloseButton>
+            <CloseButton onClick={handleCloseExpanded} aria-label="Close">×</CloseButton>
           </ExpandedImageContainer>
         </ExpandedImageOverlay>
       )}

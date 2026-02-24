@@ -7,17 +7,17 @@ import { weddingConfig } from '../src/config/wedding-config';
 
 // 동적 임포트로 코드 분할 및 지연 로딩 적용
 const DateSection = dynamic(() => import('../src/components/sections/DateSection'), {
-  loading: () => <div style={{ padding: '4rem 1.5rem', textAlign: 'center' }}>로딩 중...</div>
+  loading: () => <div style={{ padding: '4rem 1.5rem', textAlign: 'center' }}>Loading...</div>
 });
 
 // 카카오맵 API는 클라이언트 사이드에서만 로드되어야 함
 const VenueSection = dynamic(() => import('../src/components/sections/VenueSection'), {
   ssr: false,
-  loading: () => <div style={{ padding: '4rem 1.5rem', textAlign: 'center' }}>로딩 중...</div>
+  loading: () => <div style={{ padding: '4rem 1.5rem', textAlign: 'center' }}>Loading...</div>
 });
 
 const GallerySection = dynamic(() => import('../src/components/sections/GallerySection'), {
-  loading: () => <div style={{ padding: '4rem 1.5rem', textAlign: 'center' }}>로딩 중...</div>
+  loading: () => <div style={{ padding: '4rem 1.5rem', textAlign: 'center' }}>Loading...</div>
 });
 
 const InvitationSection = dynamic(() => import('../src/components/sections/InvitationSection'));

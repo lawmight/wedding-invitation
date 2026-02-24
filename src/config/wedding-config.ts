@@ -1,6 +1,6 @@
 const uniqueIdentifier = "JWK-WEDDING-TEMPLATE-V1";
 
-// 갤러리 레이아웃 타입 정의
+// Gallery layout type definitions
 type GalleryLayout = "scroll" | "grid";
 type GalleryPosition = "middle" | "bottom";
 
@@ -11,81 +11,81 @@ interface GalleryConfig {
 }
 
 export const weddingConfig = {
-  // 메타 정보
+  // Meta information
   meta: {
-    title: "신랑 ❤️ 신부의 결혼식에 초대합니다",
-    description: "결혼식 초대장",
+    title: "You're invited to our wedding",
+    description: "Wedding invitation",
     ogImage: "/images/ha0h-1fsi-bqt3.jpg",
     noIndex: true,
     _jwk_watermark_id: uniqueIdentifier,
   },
 
-  // 메인 화면
+  // Main screen
   main: {
     title: "Wedding Invitation",
     image: "/images/ha0h-1fsi-bqt3.jpg",
-    date: "2026년 5월 16일 토요일 12시 30분",
-    venue: "웨딩홀 이름"
+    date: "Saturday, May 16, 2026 at 12:30 PM",
+    venue: "Venue name"
   },
 
-  // 소개글
+  // Introduction
   intro: {
     title: "",
-    text: "서로를 바라보며 걸어온\n소중한 발걸음이\n이제 하나의 길로 이어집니다.\n\n사랑과 믿음으로\n새 가정을 이루는 저희 두 사람의\n작은 시작을 알려드립니다."
+    text: "The precious steps we have taken\nwhile looking at each other\nnow lead to a single path.\n\nWith love and faith,\nwe share our humble beginning\nas we build our new home together."
   },
 
-  // 결혼식 일정
+  // Wedding schedule
   date: {
     year: 2026,
     month: 5,
     day: 16,
     hour: 12,
     minute: 30,
-    displayDate: "2026.05.16 SAT PM 12:30",
+    displayDate: "May 16, 2026 · 12:30 PM",
   },
 
-  // 장소 정보
+  // Venue information
   venue: {
-    name: "웨딩홀 이름",
-    address: "서울특별시 강남구 테헤란로 123\n웨딩홀 이름",
+    name: "Venue name",
+    address: "123 Teheran-ro, Gangnam-gu\nSeoul, South Korea\nVenue name",
     tel: "02-1234-5678",
-    naverMapId: "웨딩홀 이름", // 네이버 지도 검색용 장소명
+    naverMapId: "Venue name", // Place name for Naver Maps search
     coordinates: {
       latitude: 37.5665,
       longitude: 126.9780,
     },
-    placeId: "123456789", // 네이버 지도 장소 ID
-    mapZoom: "17", // 지도 줌 레벨
-    mapNaverCoordinates: "14141300,4507203,15,0,0,0,dh", // 네이버 지도 길찾기 URL용 좌표 파라미터 (구 형식)
+    placeId: "123456789", // Naver Maps place ID
+    mapZoom: "17", // Map zoom level
+    mapNaverCoordinates: "14141300,4507203,15,0,0,0,dh", // Naver Maps directions URL coordinates
     transportation: {
-      subway: "지하철역 1번 출구에서 도보 5분",
-      bus: "간선\n 101, 102, 103\n지선\n 1234, 5678",
+      subway: "5 min walk from Subway Station Exit 1",
+      bus: "Main lines\n 101, 102, 103\nBranch lines\n 1234, 5678",
     },
-    parking: "건물 지하 주차장 이용 가능 (2시간 무료)",
-    // 신랑측 배차 안내
+    parking: "Building underground parking available (2 hours free)",
+    // Groom's shuttle information
     groomShuttle: {
-      location: "신랑측 배차 출발지",
-      departureTime: "오전 10시 30분 출발",
+      location: "Groom's shuttle departure point",
+      departureTime: "Departure at 10:30 AM",
       contact: {
-        name: "담당자명",
+        name: "Contact name",
         tel: "010-1234-5678"
       }
     },
-    // 신부측 배차 안내
+    // Bride's shuttle information
     brideShuttle: {
-      location: "신부측 배차 출발지",
-      departureTime: "오전 11시 출발",
+      location: "Bride's shuttle departure point",
+      departureTime: "Departure at 11:00 AM",
       contact: {
-        name: "담당자명",
+        name: "Contact name",
         tel: "010-9876-5432"
       }
     }
   },
 
-  // 갤러리
+  // Gallery
   gallery: {
-    layout: "grid" as GalleryLayout, // "scroll" 또는 "grid" 선택
-    position: "bottom" as GalleryPosition, // "middle" (현재 위치) 또는 "bottom" (맨 하단) 선택
+    layout: "grid" as GalleryLayout, // "scroll" or "grid"
+    position: "bottom" as GalleryPosition, // "middle" (current position) or "bottom" (at bottom)
     images: [
       "/images/gallery/image1.jpg",
       "/images/gallery/image2.jpg",
@@ -99,67 +99,67 @@ export const weddingConfig = {
     ],
   } as GalleryConfig,
 
-  // 초대의 말씀
+  // Invitation message
   invitation: {
-    message: "한 줄기 별빛이 되어 만난 인연\n평생을 함께 걸어가려 합니다.\n\n소중한 분들의 축복 속에\n저희 두 사람이 첫 걸음을 내딛습니다.\n\n귀한 시간 내어 함께해 주신다면\n그 어떤 축복보다 값진 선물이 될 것입니다.",
+    message: "Destined to meet like a ray of starlight,\nwe wish to walk through life together.\n\nWith your precious blessings,\nwe take our first step as one.\n\nYour presence would be the greatest gift of all.",
     groom: {
-      name: "신랑이름",
-      label: "아들",
-      father: "신랑아버지",
-      mother: "신랑어머니",
+      name: "Groom's name",
+      label: "Son",
+      father: "Groom's father",
+      mother: "Groom's mother",
     },
     bride: {
-      name: "신부이름",
-      label: "딸",
-      father: "신부아버지",
-      mother: "신부어머니",
+      name: "Bride's name",
+      label: "Daughter",
+      father: "Bride's father",
+      mother: "Bride's mother",
     },
   },
 
-  // 계좌번호
+  // Bank account information
   account: {
     groom: {
-      bank: "은행명",
+      bank: "Bank name",
       number: "123-456-789012",
-      holder: "신랑이름",
+      holder: "Groom's name",
     },
     bride: {
-      bank: "은행명",
+      bank: "Bank name",
       number: "987-654-321098",
-      holder: "신부이름",
+      holder: "Bride's name",
     },
     groomFather: {
-      bank: "은행명",
+      bank: "Bank name",
       number: "111-222-333444",
-      holder: "신랑아버지",
+      holder: "Groom's father",
     },
     groomMother: {
-      bank: "은행명",
+      bank: "Bank name",
       number: "555-666-777888",
-      holder: "신랑어머니",
+      holder: "Groom's mother",
     },
     brideFather: {
-      bank: "은행명",
+      bank: "Bank name",
       number: "999-000-111222",
-      holder: "신부아버지",
+      holder: "Bride's father",
     },
     brideMother: {
-      bank: "은행명",
+      bank: "Bank name",
       number: "333-444-555666",
-      holder: "신부어머니",
+      holder: "Bride's mother",
     }
   },
 
-  // RSVP 설정
+  // RSVP settings
   rsvp: {
-    enabled: false, // RSVP 섹션 표시 여부
-    showMealOption: false, // 식사 여부 입력 옵션 표시 여부
+    enabled: false, // Show RSVP section
+    showMealOption: false, // Show meal option input
   },
 
-  // 슬랙 알림 설정
+  // Slack notification settings
   slack: {
     webhookUrl: process.env.NEXT_PUBLIC_SLACK_WEBHOOK_URL || "",
     channel: "#wedding-response",
-    compactMessage: true, // 슬랙 메시지를 간결하게 표시
+    compactMessage: true, // Display Slack messages concisely
   },
 }; 

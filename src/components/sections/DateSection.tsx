@@ -96,25 +96,25 @@ const DateSection = ({ bgColor = 'white' }: DateSectionProps) => {
 
   return (
     <DateSectionContainer $bgColor={bgColor}>
-      <SectionTitle>일정</SectionTitle>
+      <SectionTitle>Date & time</SectionTitle>
       
       <CalendarCard>
         <CalendarHeader>
-          <span>{weddingConfig.date.year}년 {weddingConfig.date.month}월</span>
+          <span>{new Date(weddingConfig.date.year, weddingConfig.date.month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
           <div>
-            <button aria-label="이전 달"><i className="fas fa-chevron-left"></i></button>
-            <button aria-label="다음 달"><i className="fas fa-chevron-right"></i></button>
+            <button aria-label="Previous month"><i className="fas fa-chevron-left"></i></button>
+            <button aria-label="Next month"><i className="fas fa-chevron-right"></i></button>
           </div>
         </CalendarHeader>
         
         <CalendarGrid>
-          <DayName $isWeekend="sun">일</DayName>
-          <DayName>월</DayName>
-          <DayName>화</DayName>
-          <DayName>수</DayName>
-          <DayName>목</DayName>
-          <DayName>금</DayName>
-          <DayName $isWeekend="sat">토</DayName>
+          <DayName $isWeekend="sun">Sun</DayName>
+          <DayName>Mon</DayName>
+          <DayName>Tue</DayName>
+          <DayName>Wed</DayName>
+          <DayName>Thu</DayName>
+          <DayName>Fri</DayName>
+          <DayName $isWeekend="sat">Sat</DayName>
           
           {generateCalendar()}
         </CalendarGrid>
@@ -122,33 +122,33 @@ const DateSection = ({ bgColor = 'white' }: DateSectionProps) => {
       
       {!isWeddingPassed && (
         <CountdownContainer>
-          <CountdownTitle>결혼까지 남은 시간</CountdownTitle>
+          <CountdownTitle>Time until the wedding</CountdownTitle>
           
           <CountdownWrapper>
             <CountdownItem>
               <CountdownValue>{timeLeft.days}</CountdownValue>
-              <CountdownLabel>일</CountdownLabel>
+              <CountdownLabel>Days</CountdownLabel>
             </CountdownItem>
             <VerticalDivider />
             <CountdownItem>
               <CountdownValue>
                 {timeLeft.hours < 10 ? `0${timeLeft.hours}` : timeLeft.hours}
               </CountdownValue>
-              <CountdownLabel>시간</CountdownLabel>
+              <CountdownLabel>Hours</CountdownLabel>
             </CountdownItem>
             <VerticalDivider />
             <CountdownItem>
               <CountdownValue>
                 {timeLeft.minutes < 10 ? `0${timeLeft.minutes}` : timeLeft.minutes}
               </CountdownValue>
-              <CountdownLabel>분</CountdownLabel>
+              <CountdownLabel>Minutes</CountdownLabel>
             </CountdownItem>
             <VerticalDivider />
             <CountdownItem>
               <CountdownValue>
                 {timeLeft.seconds < 10 ? `0${timeLeft.seconds}` : timeLeft.seconds}
               </CountdownValue>
-              <CountdownLabel>초</CountdownLabel>
+              <CountdownLabel>Seconds</CountdownLabel>
             </CountdownItem>
           </CountdownWrapper>
         </CountdownContainer>
