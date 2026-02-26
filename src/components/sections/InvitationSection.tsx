@@ -70,7 +70,7 @@ const InvitationSection = ({ bgColor = 'white' }: InvitationSectionProps) => {
           {hasGroomParents ? (
             <ParentsNames>
               {groomParentsText}
-              <ParentLabel> 's {translateLabel(invitation.groom.label || "아들")}</ParentLabel>
+              <ParentLabel> &apos;s {translateLabel(invitation.groom.label || "아들")}</ParentLabel>
             </ParentsNames>
           ) : (
             <ParentsNames>
@@ -84,7 +84,7 @@ const InvitationSection = ({ bgColor = 'white' }: InvitationSectionProps) => {
           {hasBrideParents ? (
             <ParentsNames>
               {brideParentsText}
-              <ParentLabel> 's {translateLabel(invitation.bride.label || "딸")}</ParentLabel>
+              <ParentLabel> &apos;s {translateLabel(invitation.bride.label || "딸")}</ParentLabel>
             </ParentsNames>
           ) : (
             <ParentsNames>

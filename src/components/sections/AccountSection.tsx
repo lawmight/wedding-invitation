@@ -151,7 +151,7 @@ const AccountSection = ({ bgColor = 'white' }: AccountSectionProps) => {
         {/* 신랑측 계좌 카드 */}
         <AccountCard onClick={() => toggleSide('groom')}>
           <AccountCardHeader $isExpanded={expandedSide === 'groom'}>
-            <GroupTitle>Groom's account</GroupTitle>
+            <GroupTitle>Groom&apos;s account</GroupTitle>
             <ExpandIcon $isExpanded={expandedSide === 'groom'}>
               {expandedSide === 'groom' ? '−' : '+'}
             </ExpandIcon>
@@ -169,7 +169,7 @@ const AccountSection = ({ bgColor = 'white' }: AccountSectionProps) => {
         {/* 신부측 계좌 카드 */}
         <AccountCard onClick={() => toggleSide('bride')}>
           <AccountCardHeader $isExpanded={expandedSide === 'bride'}>
-            <GroupTitle>Bride's account</GroupTitle>
+            <GroupTitle>Bride&apos;s account</GroupTitle>
             <ExpandIcon $isExpanded={expandedSide === 'bride'}>
               {expandedSide === 'bride' ? '−' : '+'}
             </ExpandIcon>

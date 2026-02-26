@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import Image from 'next/image';
 import { weddingConfig } from '../../config/wedding-config';
@@ -114,6 +114,24 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
       };
     }
   }, [expandedImage]);
+
+  const goToPreviousImage = useCallback(() => {
+    if (expandedImageIndex > 0) {
+      const newIndex = expandedImageIndex - 1;
+      setExpandedImageIndex(newIndex);
+      setExpandedImage(images[newIndex]);
+      setIsExpandedImageLoading(true);
+    }
+  }, [expandedImageIndex, images]);
+
+  const goToNextImage = useCallback(() => {
+    if (expandedImageIndex < images.length - 1) {
+      const newIndex = expandedImageIndex + 1;
+      setExpandedImageIndex(newIndex);
+      setExpandedImage(images[newIndex]);
+      setIsExpandedImageLoading(true);
+    }
+  }, [expandedImageIndex, images]);
   
   // 터치 이벤트 처리
   useEffect(() => {
@@ -153,7 +171,7 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
         overlay.removeEventListener('touchend', handleTouchEnd);
       };
     }
-  }, [expandedImage]);
+  }, [expandedImage, goToNextImage, goToPreviousImage]);
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
@@ -182,24 +200,6 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
     setIsExpandedImageLoading(true); // 이미지 로딩 시작
     // 확대 이미지가 표시될 때 스크롤 방지
     document.body.style.overflow = 'hidden';
-  };
-
-  const goToPreviousImage = () => {
-    if (expandedImageIndex > 0) {
-      const newIndex = expandedImageIndex - 1;
-      setExpandedImageIndex(newIndex);
-      setExpandedImage(images[newIndex]);
-      setIsExpandedImageLoading(true); // 새 이미지 로딩 시작
-    }
-  };
-
-  const goToNextImage = () => {
-    if (expandedImageIndex < images.length - 1) {
-      const newIndex = expandedImageIndex + 1;
-      setExpandedImageIndex(newIndex);
-      setExpandedImage(images[newIndex]);
-      setIsExpandedImageLoading(true); // 새 이미지 로딩 시작
-    }
   };
 
   const handleCloseExpanded = () => {
@@ -256,7 +256,7 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
         document.removeEventListener('wheel', handleWheel);
       };
     }
-  }, [expandedImage, expandedImageIndex, images]);
+  }, [expandedImage, expandedImageIndex, images, goToNextImage, goToPreviousImage]);
   
   // 확대된 이미지 로드 완료 핸들러
   const handleExpandedImageLoad = () => {
