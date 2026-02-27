@@ -31,16 +31,30 @@ If this project has been helpful, show your support with a cup of coffee! Your s
 
 ## Tech stack
 
-- Next.js 14 (App Router)
+- Next.js 16 (App Router)
 - TypeScript
 - styled-components
+- Tailwind CSS
+- Framer Motion
 - Naver Map API
 - Web Share API
 - Slack Webhook API
 
 ## Getting started
 
+### Quick reference
+
+| Action        | Command              |
+|---------------|----------------------|
+| Install deps  | `npm install`        |
+| Dev server    | `npm run dev` (Turbopack, port 3000) |
+| Build         | `npm run build`      |
+| Type check    | `npx tsc --noEmit`   |
+| Lint          | `npm run lint`       |
+
 ### Environment setup
+
+All external API keys (AMAP, Naver Map, Slack webhook) are **optional**. The app runs fully without them; only the embedded map and Slack RSVP notifications will be absent.
 
 1. Clone the repository:
   ```
@@ -51,7 +65,7 @@ If this project has been helpful, show your support with a cup of coffee! Your s
   ```
    npm install
   ```
-3. Create `.env.local` file:
+3. (Optional) Create `.env.local` for map and RSVP features:
   ```
    # AMAP (embedded venue map) - get key at https://console.amap.com/
    NEXT_PUBLIC_AMAP_KEY=your_amap_key
@@ -66,7 +80,7 @@ If this project has been helpful, show your support with a cup of coffee! Your s
    # Site URL (after deployment)
    NEXT_PUBLIC_SITE_URL=https://your-wedding-site.com
   ```
-4. Run the development server:
+4. Run the development server (uses Turbopack):
   ```
    npm run dev
   ```
@@ -123,7 +137,7 @@ The "Naver Map" button opens Naver Maps for directions. The embedded map is AMAP
 2. In the console, go to "Products & Services" > "AI·Application Service" > "Maps".
 3. Click "Application 등록" to create a new application.
 4. Enter the application name and select "WEB 환경".
-5. Register the web service URL (deployment domain or development URL [[http://localhost:3000]](http://localhost:3000])):
+5. Register the web service URL (deployment domain or development URL [http://localhost:3000](http://localhost:3000)):
   - Local development: [http://localhost:3000](http://localhost:3000)
   - Production: [https://your-wedding-site.com](https://your-wedding-site.com)
 6. Set the Client ID in `.env.local` as `NEXT_PUBLIC_NAVER_MAP_CLIENT_ID`.
@@ -321,10 +335,8 @@ This project can be easily deployed to Vercel or Netlify.
 
 1. Sign up at [Netlify](https://netlify.com) and connect your GitHub account.
 2. Create a new site and select this repository.
-3. Build settings:
-  - Build command: `npm run build`
-  - Publish directory: `.next`
-4. Set environment variables (from `.env.local`).
+3. Use Netlify’s **Next.js** framework preset (build command: `npm run build`; publish directory is set automatically).
+4. Set environment variables from `.env.local`.
 5. (Optional) Configure a custom domain.
 
 ## Security and privacy
@@ -433,9 +445,9 @@ Reference any related issue numbers (e.g. #123).
 
 ### Code style
 
-- Follow the project's eslint and prettier configuration for TypeScript.
+- Follow the project’s ESLint configuration (flat config: `eslint.config.mjs`) for TypeScript.
 - Use functional components for React.
-- Use styled-components for styling.
+- Use styled-components and Tailwind for styling.
 - Use clear variable names and appropriate comments for readability.
 
 ## License
