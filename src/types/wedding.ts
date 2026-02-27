@@ -29,6 +29,8 @@ export interface Venue {
   address: string;
   tel: string;
   naverMapId: string;
+  /** Optional address used for AMap (高德) navigation destination name; defaults to venue.name */
+  amapAddress?: string;
   coordinates: {
     latitude: number;
     longitude: number;
