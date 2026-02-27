@@ -1,14 +1,126 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import Image from 'next/image';
 import { weddingConfig } from '../../config/wedding-config';
 
 const watermarkId = weddingConfig.meta._jwk_watermark_id || 'JWK-NonCommercial';
+const EDGE_SAMPLE_RATIO = 0.05;
+const SAMPLE_STEP = 4;
+
+type RGBColor = {
+  r: number;
+  g: number;
+  b: number;
+};
+
+type EdgeColors = {
+  top: RGBColor;
+  bottom: RGBColor;
+};
+
+const averageStripColor = (data: Uint8ClampedArray): RGBColor | null => {
+  let red = 0;
+  let green = 0;
+  let blue = 0;
+  let count = 0;
+
+  for (let i = 0; i < data.length; i += 4 * SAMPLE_STEP) {
+    // Skip fully transparent pixels to avoid blending with empty canvas areas.
+    if (data[i + 3] === 0) {
+      continue;
+    }
+
+    red += data[i];
+    green += data[i + 1];
+    blue += data[i + 2];
+    count += 1;
+  }
+
+  if (count === 0) {
+    return null;
+  }
+
+  return {
+    r: Math.round(red / count),
+    g: Math.round(green / count),
+    b: Math.round(blue / count),
+  };
+};
 
 const MainSection = ({ mainImageUrl }: { mainImageUrl?: string }) => {
   const imageSrc = mainImageUrl ?? weddingConfig.main.image;
+  const [edgeColors, setEdgeColors] = useState<EdgeColors | null>(null);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const image = new window.Image();
+    image.crossOrigin = 'anonymous';
+    image.decoding = 'async';
+
+    image.onload = () => {
+      if (!isActive) {
+        return;
+      }
+
+      try {
+        const width = image.naturalWidth;
+        const height = image.naturalHeight;
+
+        if (!width || !height) {
+          setEdgeColors(null);
+          return;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const context = canvas.getContext('2d');
+        if (!context) {
+          setEdgeColors(null);
+          return;
+        }
+
+        context.drawImage(image, 0, 0, width, height);
+
+        const stripHeight = Math.max(1, Math.floor(height * EDGE_SAMPLE_RATIO));
+        const topStrip = context.getImageData(0, 0, width, stripHeight).data;
+        const bottomStrip = context.getImageData(0, height - stripHeight, width, stripHeight).data;
+
+        const topColor = averageStripColor(topStrip);
+        const bottomColor = averageStripColor(bottomStrip);
+
+        if (!topColor || !bottomColor) {
+          setEdgeColors(null);
+          return;
+        }
+
+        setEdgeColors({
+          top: topColor,
+          bottom: bottomColor,
+        });
+      } catch {
+        // Canvas can fail for cross-origin images; fallback keeps current behavior.
+        setEdgeColors(null);
+      }
+    };
+
+    image.onerror = () => {
+      if (isActive) {
+        setEdgeColors(null);
+      }
+    };
+
+    image.src = imageSrc;
+
+    return () => {
+      isActive = false;
+    };
+  }, [imageSrc]);
+
   return (
     <MainSectionContainer className={`wedding-container jwk-${watermarkId.slice(0, 8)}-main`}>
       {}
@@ -19,8 +131,14 @@ const MainSection = ({ mainImageUrl }: { mainImageUrl?: string }) => {
         priority
         sizes="100vw"
         quality={90}
-        style={{ objectFit: 'cover', objectPosition: 'center 10%' }}
+        style={{ objectFit: 'contain', objectPosition: 'center' }}
       />
+      {edgeColors && (
+        <>
+          <TopColorFade $color={edgeColors.top} />
+          <BottomColorFade $color={edgeColors.bottom} />
+        </>
+      )}
       <Overlay />
       <MainContent>
         <MainTitle>{weddingConfig.main.title}</MainTitle>
@@ -54,6 +172,14 @@ const MainSectionContainer = styled.section`
   overflow: hidden;
   background: #f8f6f2;
 
+  /* Mobile: don't stretch to full viewport; size by aspect ratio so full image fits */
+  @media (max-width: 767px) {
+    height: auto;
+    min-height: auto;
+    aspect-ratio: 9 / 16;
+    width: 100%;
+  }
+
   @media (min-width: 768px) and (min-height: 780px) {
     aspect-ratio: 9 / 16;
     max-width: calc(100vh * 9 / 16);
@@ -75,12 +201,36 @@ const Overlay = styled.div`
   width: 100%;
   height: 100%;
   background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 40%);
+  z-index: 2;
+`;
+
+const TopColorFade = styled.div<{ $color: RGBColor }>`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 28%;
+  pointer-events: none;
   z-index: 1;
+  background: ${({ $color }) =>
+    `linear-gradient(to bottom, rgba(${$color.r}, ${$color.g}, ${$color.b}, 0.6) 0%, rgba(${$color.r}, ${$color.g}, ${$color.b}, 0) 100%)`};
+`;
+
+const BottomColorFade = styled.div<{ $color: RGBColor }>`
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 26%;
+  pointer-events: none;
+  z-index: 1;
+  background: ${({ $color }) =>
+    `linear-gradient(to bottom, rgba(${$color.r}, ${$color.g}, ${$color.b}, 0) 0%, rgba(${$color.r}, ${$color.g}, ${$color.b}, 0.6) 100%)`};
 `;
 
 const MainContent = styled.div`
   position: relative;
-  z-index: 2;
+  z-index: 3;
   margin-top: 0.5vh;
   @media (max-width: 600px) {
     margin-top: 0.5vh;
@@ -259,7 +409,7 @@ const ScrollIndicator = styled.div`
   bottom: 2rem;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 2;
+  z-index: 3;
   animation: bounce 2s infinite;
   
   @keyframes bounce {

@@ -53,6 +53,7 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
   
   // 갤러리 레이아웃 모드 (scroll 또는 grid)
   const galleryLayout = weddingConfig.gallery.layout || 'scroll';
+  const imageRotations = weddingConfig.gallery.imageRotations ?? {};
   
   useEffect(() => {
     // API에서 갤러리 이미지 목록 가져오기
@@ -290,7 +291,17 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
       {galleryLayout === 'grid' ? (
         // 그리드 레이아웃
         <GalleryGridContainer>
-          {images.map((image, index) => (
+          {images.map((image, index) => {
+            const rotation = imageRotations[image];
+            const imageStyle: React.CSSProperties = {
+              objectFit: 'cover',
+              ...(typeof rotation === 'number' && rotation !== 0
+                ? {
+                    transform: `rotate(${rotation}deg) scale(${rotation === 90 || rotation === 270 ? 1.34 : 1})`,
+                  }
+                : {}),
+            };
+            return (
             <GalleryGridCard key={index} onClick={() => handleImageClick(image)}>
               <GalleryGridImageWrapper>
                 <GalleryNextImage 
@@ -300,13 +311,14 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
                   sizes="(max-width: 768px) calc(33.333vw - 1rem), calc(33.333vw - 2rem)"
                   quality={85}
                   priority={index < 6}
-                  style={{ objectFit: 'cover' }}
+                  style={imageStyle}
                   draggable={false}
                   onContextMenu={e => e.preventDefault()}
                 />
               </GalleryGridImageWrapper>
             </GalleryGridCard>
-          ))}
+            );
+          })}
         </GalleryGridContainer>
       ) : (
         // 스크롤 레이아웃 (기존)
@@ -316,7 +328,17 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
           </GalleryButton>
           
           <GalleryScrollContainer ref={scrollContainerRef}>
-            {images.map((image, index) => (
+            {images.map((image, index) => {
+              const rotation = imageRotations[image];
+              const imageStyle: React.CSSProperties = {
+                objectFit: 'cover',
+                ...(typeof rotation === 'number' && rotation !== 0
+                  ? {
+                      transform: `rotate(${rotation}deg) scale(${rotation === 90 || rotation === 270 ? 1.34 : 1})`,
+                    }
+                  : {}),
+              };
+              return (
               <GalleryCard key={index} onClick={() => handleImageClick(image)}>
                 <GalleryImageWrapper>
                   <GalleryNextImage 
@@ -326,13 +348,14 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
                     sizes="(max-width: 768px) 250px, 300px"
                     quality={85}
                     priority={index < 3}
-                    style={{ objectFit: 'cover' }}
+                    style={imageStyle}
                     draggable={false}
                     onContextMenu={e => e.preventDefault()}
                   />
                 </GalleryImageWrapper>
               </GalleryCard>
-            ))}
+              );
+            })}
           </GalleryScrollContainer>
           
           <GalleryButton onClick={scrollRight} aria-label="Next images" className="right-button">
@@ -361,7 +384,13 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
                 fill
                 sizes="90vw"
                 quality={90}
-                style={{ objectFit: 'contain', background: 'transparent' }}
+                style={{
+                  objectFit: 'contain',
+                  background: 'transparent',
+                  ...(typeof imageRotations[expandedImage] === 'number' && imageRotations[expandedImage] !== 0
+                    ? { transform: `rotate(${imageRotations[expandedImage]}deg)` }
+                    : {}),
+                }}
                 draggable={false}
                 onContextMenu={e => e.preventDefault()}
                 onLoad={handleExpandedImageLoad}
@@ -537,8 +566,8 @@ const ExpandedImageWrapper = styled.div<{ $isLoading: boolean }>`
   position: relative;
   width: 90vw;
   height: 90vh;
-  max-width: 90vw;
-  max-height: 90vh;
+  max-width: none;
+  max-height: none;
   display: flex;
   align-items: center;
   justify-content: center;

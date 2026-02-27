@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import { randomInt } from 'crypto';
 import HomePage from "./HomePage";
 import { weddingConfig } from '../src/config/wedding-config';
 
@@ -8,6 +9,10 @@ type PageProps = Readonly<{
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }>;
 
+/** Ensure main hero image can change on each visit (no static cache). */
+export const dynamic = 'force-dynamic';
+
+/** Pick a random main image from the gallery (portrait preferred). Changes on each request. */
 function pickRandomMainImage(): string | undefined {
   try {
     const manifestPath = path.join(process.cwd(), 'public/images/gallery/manifest.json');
@@ -16,8 +21,8 @@ function pickRandomMainImage(): string | undefined {
     const portraits = manifest.filter((e: { orientation: string }) => e.orientation === 'portrait');
     const pool = portraits.length > 0 ? portraits : manifest;
     if (pool.length === 0) return undefined;
-    const i = Math.floor(Math.random() * pool.length);
-    return pool[i].path;
+    const index = randomInt(0, pool.length);
+    return pool[index].path;
   } catch {
     return undefined;
   }

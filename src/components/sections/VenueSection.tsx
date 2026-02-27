@@ -141,8 +141,9 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
           mapInstance = map as unknown as AMapMap;
 
           new AMap.Marker({ position: center, map: map as unknown as AMapMap });
+          const infoLabel = weddingConfig.venue.amapAddress ?? weddingConfig.venue.name;
           const infoWindow = new AMap.InfoWindow({
-            content: `<div style="padding:10px;min-width:150px;text-align:center;font-size:14px;"><strong>${weddingConfig.venue.name}</strong></div>`,
+            content: `<div style="padding:10px;min-width:150px;text-align:center;font-size:14px;"><strong>${infoLabel}</strong></div>`,
           });
           infoWindow.open(map as unknown as AMapMap, center);
         } catch (error) {
@@ -178,7 +179,7 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
   const navigateToAmap = () => {
     if (typeof window === 'undefined') return;
     const { latitude, longitude } = weddingConfig.venue.coordinates;
-    const name = encodeURIComponent(weddingConfig.venue.name);
+    const name = encodeURIComponent(weddingConfig.venue.amapAddress ?? weddingConfig.venue.name);
     // 高德 URI scheme: navigation to destination
     const url = `https://uri.amap.com/navigation?dest=${longitude},${latitude}&destName=${name}`;
     window.open(url, '_blank');
@@ -271,76 +272,84 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
       
       <ParkingCard>
         <CardTitle>Parking</CardTitle>
-        <TransportText>{weddingConfig.venue.parking}</TransportText>
+        <TransportText>{weddingConfig.venue.parking || 'Not yet defined'}</TransportText>
       </ParkingCard>
       
-      {/* 신랑측 배차 안내 - 정보가 있을 때만 표시 */}
-      {weddingConfig.venue.groomShuttle && (
-        <ShuttleCard>
-          <ShuttleCardHeader onClick={() => toggleShuttle('groom')} $isExpanded={expandedShuttle === 'groom'}>
-            <CardTitle>Groom&apos;s shuttle</CardTitle>
-            <ExpandIcon $isExpanded={expandedShuttle === 'groom'}>
-              {expandedShuttle === 'groom' ? '−' : '+'}
-            </ExpandIcon>
-          </ShuttleCardHeader>
-          
-          {expandedShuttle === 'groom' && (
-            <ShuttleContent>
-              <ShuttleInfo>
-                <ShuttleLabel>Pick-up location</ShuttleLabel>
-                <ShuttleText>{formatTextWithLineBreaks(weddingConfig.venue.groomShuttle.location)}</ShuttleText>
-              </ShuttleInfo>
-              <ShuttleInfo>
-                <ShuttleLabel>Departure time</ShuttleLabel>
-                <ShuttleText>{weddingConfig.venue.groomShuttle.departureTime}</ShuttleText>
-              </ShuttleInfo>
-              <ShuttleInfo>
-                <ShuttleLabel>Contact</ShuttleLabel>
-                <ShuttleText>
-                  {weddingConfig.venue.groomShuttle.contact.name} ({weddingConfig.venue.groomShuttle.contact.tel})
-                  <ShuttleCallButton href={`tel:${weddingConfig.venue.groomShuttle.contact.tel}`}>
-                    Call
-                  </ShuttleCallButton>
-                </ShuttleText>
-              </ShuttleInfo>
-            </ShuttleContent>
-          )}
-        </ShuttleCard>
-      )}
+      {/* Groom's shuttle - always show; "Not yet defined" when no info */}
+      <ShuttleCard>
+        <ShuttleCardHeader onClick={() => toggleShuttle('groom')} $isExpanded={expandedShuttle === 'groom'}>
+          <CardTitle>Groom&apos;s shuttle</CardTitle>
+          <ExpandIcon $isExpanded={expandedShuttle === 'groom'}>
+            {expandedShuttle === 'groom' ? '−' : '+'}
+          </ExpandIcon>
+        </ShuttleCardHeader>
+        
+        {expandedShuttle === 'groom' && (
+          <ShuttleContent>
+            {weddingConfig.venue.groomShuttle ? (
+              <>
+                <ShuttleInfo>
+                  <ShuttleLabel>Pick-up location</ShuttleLabel>
+                  <ShuttleText>{formatTextWithLineBreaks(weddingConfig.venue.groomShuttle.location)}</ShuttleText>
+                </ShuttleInfo>
+                <ShuttleInfo>
+                  <ShuttleLabel>Departure time</ShuttleLabel>
+                  <ShuttleText>{weddingConfig.venue.groomShuttle.departureTime}</ShuttleText>
+                </ShuttleInfo>
+                <ShuttleInfo>
+                  <ShuttleLabel>Contact</ShuttleLabel>
+                  <ShuttleText>
+                    {weddingConfig.venue.groomShuttle.contact.name} ({weddingConfig.venue.groomShuttle.contact.tel})
+                    <ShuttleCallButton href={`tel:${weddingConfig.venue.groomShuttle.contact.tel}`}>
+                      Call
+                    </ShuttleCallButton>
+                  </ShuttleText>
+                </ShuttleInfo>
+              </>
+            ) : (
+              <ShuttleText>Not yet defined</ShuttleText>
+            )}
+          </ShuttleContent>
+        )}
+      </ShuttleCard>
       
-      {/* 신부측 배차 안내 - 정보가 있을 때만 표시 */}
-      {weddingConfig.venue.brideShuttle && (
-        <ShuttleCard>
-          <ShuttleCardHeader onClick={() => toggleShuttle('bride')} $isExpanded={expandedShuttle === 'bride'}>
-            <CardTitle>Bride&apos;s shuttle</CardTitle>
-            <ExpandIcon $isExpanded={expandedShuttle === 'bride'}>
-              {expandedShuttle === 'bride' ? '−' : '+'}
-            </ExpandIcon>
-          </ShuttleCardHeader>
-          
-          {expandedShuttle === 'bride' && (
-            <ShuttleContent>
-              <ShuttleInfo>
-                <ShuttleLabel>Pick-up location</ShuttleLabel>
-                <ShuttleText>{formatTextWithLineBreaks(weddingConfig.venue.brideShuttle.location)}</ShuttleText>
-              </ShuttleInfo>
-              <ShuttleInfo>
-                <ShuttleLabel>Departure time</ShuttleLabel>
-                <ShuttleText>{weddingConfig.venue.brideShuttle.departureTime}</ShuttleText>
-              </ShuttleInfo>
-              <ShuttleInfo>
-                <ShuttleLabel>Contact</ShuttleLabel>
-                <ShuttleText>
-                  {weddingConfig.venue.brideShuttle.contact.name} ({weddingConfig.venue.brideShuttle.contact.tel})
-                  <ShuttleCallButton href={`tel:${weddingConfig.venue.brideShuttle.contact.tel}`}>
-                    Call
-                  </ShuttleCallButton>
-                </ShuttleText>
-              </ShuttleInfo>
-            </ShuttleContent>
-          )}
-        </ShuttleCard>
-      )}
+      {/* Bride's shuttle - always show; "Not yet defined" when no info */}
+      <ShuttleCard>
+        <ShuttleCardHeader onClick={() => toggleShuttle('bride')} $isExpanded={expandedShuttle === 'bride'}>
+          <CardTitle>Bride&apos;s shuttle</CardTitle>
+          <ExpandIcon $isExpanded={expandedShuttle === 'bride'}>
+            {expandedShuttle === 'bride' ? '−' : '+'}
+          </ExpandIcon>
+        </ShuttleCardHeader>
+        
+        {expandedShuttle === 'bride' && (
+          <ShuttleContent>
+            {weddingConfig.venue.brideShuttle ? (
+              <>
+                <ShuttleInfo>
+                  <ShuttleLabel>Pick-up location</ShuttleLabel>
+                  <ShuttleText>{formatTextWithLineBreaks(weddingConfig.venue.brideShuttle.location)}</ShuttleText>
+                </ShuttleInfo>
+                <ShuttleInfo>
+                  <ShuttleLabel>Departure time</ShuttleLabel>
+                  <ShuttleText>{weddingConfig.venue.brideShuttle.departureTime}</ShuttleText>
+                </ShuttleInfo>
+                <ShuttleInfo>
+                  <ShuttleLabel>Contact</ShuttleLabel>
+                  <ShuttleText>
+                    {weddingConfig.venue.brideShuttle.contact.name} ({weddingConfig.venue.brideShuttle.contact.tel})
+                    <ShuttleCallButton href={`tel:${weddingConfig.venue.brideShuttle.contact.tel}`}>
+                      Call
+                    </ShuttleCallButton>
+                  </ShuttleText>
+                </ShuttleInfo>
+              </>
+            ) : (
+              <ShuttleText>Not yet defined</ShuttleText>
+            )}
+          </ShuttleContent>
+        )}
+      </ShuttleCard>
     </VenueSectionContainer>
   );
 };
