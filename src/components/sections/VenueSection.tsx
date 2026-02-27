@@ -185,43 +185,24 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
     window.open(url, '_blank');
   };
   
-  const navigateToNaver = () => {
-    if (typeof window !== 'undefined') {
-      // 네이버 지도 앱/웹으로 연결하는 URL (새로운 형식)
-      const naverMapsUrl = `https://map.naver.com/p/directions/-/-/-/walk/place/${weddingConfig.venue.placeId}?c=${weddingConfig.venue.mapZoom},0,0,0,dh`;
-      window.open(naverMapsUrl, '_blank');
-    }
+  const navigateToBaidu = () => {
+    if (typeof window === 'undefined') return;
+    const query = encodeURIComponent(weddingConfig.venue.amapAddress ?? weddingConfig.venue.name);
+    window.open(`https://map.baidu.com/search?query=${query}`, '_blank');
   };
-  
-  const navigateToKakao = () => {
-    if (typeof window !== 'undefined') {
-      // 카카오맵 앱/웹으로 연결
-      const lat = weddingConfig.venue.coordinates.latitude;
-      const lng = weddingConfig.venue.coordinates.longitude;
-      const name = encodeURIComponent(weddingConfig.venue.name);
-      const address = encodeURIComponent(weddingConfig.venue.address);
-      const kakaoMapsUrl = `https://map.kakao.com/link/to/${name},${lat},${lng}`;
-      window.open(kakaoMapsUrl, '_blank');
-    }
+
+  const navigateToGoogle = () => {
+    if (typeof window === 'undefined') return;
+    const { latitude, longitude } = weddingConfig.venue.coordinates;
+    const query = encodeURIComponent(`${latitude},${longitude}`);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
   };
-  
-  const navigateToTmap = () => {
-    if (typeof window !== 'undefined') {
-      // TMAP 앱으로 연결 (앱 딥링크만 사용)
-      const lat = weddingConfig.venue.coordinates.latitude;
-      const lng = weddingConfig.venue.coordinates.longitude;
-      const name = encodeURIComponent(weddingConfig.venue.name);
-      
-      // 모바일 디바이스에서는 앱 실행 시도
-      window.location.href = `tmap://route?goalname=${name}&goaly=${lat}&goalx=${lng}`;
-      
-      // 앱이 설치되어 있지 않을 경우를 대비해 약간의 지연 후 TMAP 웹사이트로 이동
-      setTimeout(() => {
-        // TMAP이 설치되어 있지 않으면 TMAP 웹사이트 메인으로 이동
-        if(document.hidden) return; // 앱이 실행되었으면 아무것도 하지 않음
-        window.location.href = 'https://tmap.co.kr';
-      }, 1000);
-    }
+
+  const navigateToApple = () => {
+    if (typeof window === 'undefined') return;
+    const { latitude, longitude } = weddingConfig.venue.coordinates;
+    const q = encodeURIComponent(weddingConfig.venue.name);
+    window.open(`https://maps.apple.com/?ll=${latitude},${longitude}&q=${q}`, '_blank');
   };
   
   return (
@@ -244,17 +225,17 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
       )}
       
       <NavigateButtonsContainer>
-        <NavigateButton onClick={navigateToAmap} $mapType="naver">
+        <NavigateButton onClick={navigateToAmap} $mapType="amap">
           AMAP
         </NavigateButton>
-        <NavigateButton onClick={navigateToNaver} $mapType="naver">
-          Naver Map
+        <NavigateButton onClick={navigateToBaidu} $mapType="baidu">
+          Baidu Map
         </NavigateButton>
-        <NavigateButton onClick={navigateToKakao} $mapType="kakao">
-          Kakao Map
+        <NavigateButton onClick={navigateToGoogle} $mapType="google">
+          Google Maps
         </NavigateButton>
-        <NavigateButton onClick={navigateToTmap} $mapType="tmap">
-          TMAP
+        <NavigateButton onClick={navigateToApple} $mapType="apple">
+          Apple Maps
         </NavigateButton>
       </NavigateButtonsContainer>
       
@@ -467,7 +448,7 @@ const NavigateButtonsContainer = styled.div`
   margin-right: auto;
 `;
 
-const NavigateButton = styled.button<{ $mapType?: 'naver' | 'kakao' | 'tmap' }>`
+const NavigateButton = styled.button<{ $mapType?: 'amap' | 'baidu' | 'google' | 'apple' }>`
   flex: 1;
   min-width: 6rem;
   background-color: var(--secondary-color);
