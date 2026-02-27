@@ -1,3 +1,5 @@
+import type { Venue } from "../types/wedding";
+
 const uniqueIdentifier = "JWK-WEDDING-TEMPLATE-V1";
 
 // Gallery layout type definitions
@@ -78,7 +80,7 @@ export const weddingConfig = {
     //   departureTime: "Departure at 11:00 AM",
     //   contact: { name: "Contact name", tel: "010-9876-5432" }
     // }
-  },
+  } as Venue,
 
   // Gallery
   gallery: {
