@@ -3,50 +3,48 @@ import fs from 'fs';
 import path from 'path';
 import { weddingConfig } from '../../../src/config/wedding-config';
 
+/** Fisher–Yates shuffle (in-place) */
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 export async function GET() {
   try {
-    // 갤러리 폴더 경로
     const galleryDir = path.join(process.cwd(), 'public/images/gallery');
-    
-    // 폴더 내 파일 목록 읽기
-    const files = fs.readdirSync(galleryDir);
-    
-    // 이미지 파일 필터링
-    const imageFiles = files
-      .filter(file => {
+    const manifestPath = path.join(galleryDir, 'manifest.json');
+    const maxDisplay = weddingConfig.gallery.maxDisplay ?? 9;
+
+    let paths: string[] = [];
+
+    if (fs.existsSync(manifestPath)) {
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      paths = manifest.map((entry: { path: string }) => entry.path);
+    } else {
+      const files = fs.readdirSync(galleryDir);
+      const imageFiles = files.filter((file) => {
         const ext = path.extname(file).toLowerCase();
         return ['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(ext);
       });
-    
-    // config 파일에 설정된 순서로 이미지 정렬
-    const configImages = weddingConfig.gallery.images;
-    const orderedImages: string[] = [];
-    
-    // config에 설정된 순서대로 존재하는 이미지만 추가
-    for (const configImagePath of configImages) {
-      const filename = path.basename(configImagePath);
-      if (imageFiles.includes(filename)) {
-        orderedImages.push(configImagePath);
-      }
+      paths = imageFiles.map((file) => `/images/gallery/${file}`);
     }
-    
-    // config에 없지만 폴더에 존재하는 이미지들을 마지막에 추가 (파일명 순으로 정렬)
-    const remainingFiles = imageFiles
-      .filter(file => !configImages.some((configPath: string) => path.basename(configPath) === file))
-      .sort((a, b) => a.localeCompare(b))
-      .map(file => `/images/gallery/${file}`);
-    
-    const finalImages = [...orderedImages, ...remainingFiles];
-    
-    return NextResponse.json({ images: finalImages });
+
+    const shuffled = shuffle(paths);
+    const images = shuffled.slice(0, maxDisplay);
+
+    return NextResponse.json({ images });
   } catch (error) {
-    console.error('갤러리 이미지 로드 오류:', error);
+    console.error('Gallery image load error:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'An error occurred while loading the gallery images.',
-        images: weddingConfig.gallery.images // 에러 시 config 설정 반환
-      }, 
-      { status: 500 }
+        images: weddingConfig.gallery.images,
+      },
+      { status: 200 }
     );
   }
-} 
+}

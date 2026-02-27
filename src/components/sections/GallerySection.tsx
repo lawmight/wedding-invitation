@@ -54,11 +54,6 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
   // 갤러리 레이아웃 모드 (scroll 또는 grid)
   const galleryLayout = weddingConfig.gallery.layout || 'scroll';
   
-  // 디버깅을 위한 로그
-  console.log('Gallery Layout:', galleryLayout);
-  console.log('Wedding Config Gallery:', weddingConfig.gallery);
-  console.log('Gallery Layout from config:', weddingConfig.gallery.layout);
-  
   useEffect(() => {
     // API에서 갤러리 이미지 목록 가져오기
     const fetchGalleryImages = async () => {

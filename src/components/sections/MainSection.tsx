@@ -7,12 +7,13 @@ import { weddingConfig } from '../../config/wedding-config';
 
 const watermarkId = weddingConfig.meta._jwk_watermark_id || 'JWK-NonCommercial';
 
-const MainSection = () => {
+const MainSection = ({ mainImageUrl }: { mainImageUrl?: string }) => {
+  const imageSrc = mainImageUrl ?? weddingConfig.main.image;
   return (
     <MainSectionContainer className={`wedding-container jwk-${watermarkId.slice(0, 8)}-main`}>
       {}
       <BackgroundImage 
-        src={weddingConfig.main.image}
+        src={imageSrc}
         alt="Wedding background image"
         fill
         priority

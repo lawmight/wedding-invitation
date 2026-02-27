@@ -7,6 +7,7 @@ type GalleryPosition = "middle" | "bottom";
 interface GalleryConfig {
   layout: GalleryLayout;
   position: GalleryPosition;
+  maxDisplay: number;
   images: string[];
 }
 
@@ -15,15 +16,15 @@ export const weddingConfig = {
   meta: {
     title: "You're invited to our wedding",
     description: "Wedding invitation",
-    ogImage: "/images/ha0h-1fsi-bqt3.jpg",
+    ogImage: "/images/gallery/IMG_20250609_222047.jpg",
     noIndex: true,
     _jwk_watermark_id: uniqueIdentifier,
   },
 
-  // Main screen
+  // Main screen (fallback when no random main is available)
   main: {
     title: "Wedding Invitation",
-    image: "/images/ha0h-1fsi-bqt3.jpg",
+    image: "/images/gallery/IMG_20250609_222047.jpg",
     date: "Saturday, May 16, 2026 at 12:30 PM",
     venue: "Venue name"
   },
@@ -46,13 +47,13 @@ export const weddingConfig = {
 
   // Venue information
   venue: {
-    name: "Venue name",
-    address: "123 Teheran-ro, Gangnam-gu\nSeoul, South Korea\nVenue name",
+    name: "Zongcheng Real Estate Building",
+    address: "Room 402, Unit 1, Zongcheng Real Estate Building\nNo. 105 Zhongshan West Road\nTongxian City, Jiaxing, Zhejiang Province, 314500\nChina",
     tel: "02-1234-5678",
-    naverMapId: "Venue name", // Place name for Naver Maps search
+    naverMapId: "Zongcheng Real Estate Building", // Place name for Naver Maps search
     coordinates: {
-      latitude: 37.5665,
-      longitude: 126.9780,
+      latitude: 30.6302,
+      longitude: 120.564,
     },
     placeId: "123456789", // Naver Maps place ID
     mapZoom: "17", // Map zoom level
@@ -86,17 +87,8 @@ export const weddingConfig = {
   gallery: {
     layout: "grid" as GalleryLayout, // "scroll" or "grid"
     position: "bottom" as GalleryPosition, // "middle" (current position) or "bottom" (at bottom)
-    images: [
-      "/images/gallery/image1.jpg",
-      "/images/gallery/image2.jpg",
-      "/images/gallery/image3.jpg",
-      "/images/gallery/image4.jpg",
-      "/images/gallery/image5.jpg",
-      "/images/gallery/image6.jpg",
-      "/images/gallery/image7.jpg",
-      "/images/gallery/image8.jpg",
-      "/images/gallery/image9.jpg",
-    ],
+    maxDisplay: 9,
+    images: [] as string[], // fallback when folder read fails; runtime uses folder + shuffle
   } as GalleryConfig,
 
   // Invitation message

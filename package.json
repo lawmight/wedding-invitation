@@ -9,7 +9,8 @@
     "build:turbo": "next build --turbopack",
     "build:fresh": "npm run prebuild && npm run build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "next lint",
+    "analyze-photos": "node scripts/analyze-photos.js"
   },
   "dependencies": {
     "framer-motion": "^12.12.1",
@@ -26,6 +27,8 @@
     "@types/react-dom": "^19.2.3",
     "@types/styled-components": "^5.1.34",
     "eslint-config-next": "^16.1.6",
+    "image-size": "^1.1.1",
+    "sharp": "^0.33.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

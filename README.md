@@ -4,13 +4,14 @@ This project is a mobile-optimized wedding invitation website. It provides an op
 If you find it useful, please Fork and Star!
 
 ## Sample site
+
 [Visit the site](https://wedding-invitation-neon-five.vercel.app)
 
 ## Support the developer
 
 If this project has been helpful, show your support with a cup of coffee! Your support helps create better open source projects.
 
-<img src="qr_for_coffee.png" alt="Coffee QR" width="200" />
+
 
 [☕ Buy the developer a coffee](https://qr.kakaopay.com/Ej8soKM2U)
 
@@ -42,36 +43,33 @@ If this project has been helpful, show your support with a cup of coffee! Your s
 ### Environment setup
 
 1. Clone the repository:
-   ```
+  ```
    git clone https://github.com/your-username/wedding-invitation.git
    cd wedding-invitation
-   ```
-
+  ```
 2. Install dependencies:
-   ```
+  ```
    npm install
-   ```
-
+  ```
 3. Create `.env.local` file:
-   ```
+  ```
    # AMAP (embedded venue map) - get key at https://console.amap.com/
    NEXT_PUBLIC_AMAP_KEY=your_amap_key
    NEXT_PUBLIC_AMAP_SECURITY_JS_CODE=your_amap_security_js_code
-   
+
    # Naver Map (direction button only)
    NEXT_PUBLIC_NAVER_MAP_CLIENT_ID=your_naver_map_client_id
-   
+
    # Slack Webhook URL (for RSVP notifications)
    NEXT_PUBLIC_SLACK_WEBHOOK_URL=your_slack_webhook_url
-   
+
    # Site URL (after deployment)
    NEXT_PUBLIC_SITE_URL=https://your-wedding-site.com
-   ```
-
+  ```
 4. Run the development server:
-   ```
+  ```
    npm run dev
-   ```
+  ```
 
 ## Editing content
 
@@ -109,8 +107,8 @@ The **embedded map** on the venue section uses AMAP (高德地图) JavaScript AP
 1. Register at [高德开放平台](https://console.amap.com/) and create an application.
 2. Add a key for **Web端 (JS API)** and note the **安全密钥** (security JS code).
 3. In `.env.local` set:
-   - `NEXT_PUBLIC_AMAP_KEY` = your Web JS API key
-   - `NEXT_PUBLIC_AMAP_SECURITY_JS_CODE` = your 安全密钥
+  - `NEXT_PUBLIC_AMAP_KEY` = your Web JS API key
+  - `NEXT_PUBLIC_AMAP_SECURITY_JS_CODE` = your 安全密钥
 4. Restrict the key to your domain (e.g. `localhost`, your production domain) in the AMAP console.
 
 Keys created after 2021-12-02 require the security code. See [AMAP JS API 2.0 加载](https://lbs.amap.com/api/javascript-api-v2/guide/abc/load).
@@ -125,9 +123,9 @@ The "Naver Map" button opens Naver Maps for directions. The embedded map is AMAP
 2. In the console, go to "Products & Services" > "AI·Application Service" > "Maps".
 3. Click "Application 등록" to create a new application.
 4. Enter the application name and select "WEB 환경".
-5. Register the web service URL (deployment domain or development URL [http://localhost:3000]):
-   - Local development: http://localhost:3000
-   - Production: https://your-wedding-site.com
+5. Register the web service URL (deployment domain or development URL [[http://localhost:3000]](http://localhost:3000])):
+  - Local development: [http://localhost:3000](http://localhost:3000)
+  - Production: [https://your-wedding-site.com](https://your-wedding-site.com)
 6. Set the Client ID in `.env.local` as `NEXT_PUBLIC_NAVER_MAP_CLIENT_ID`.
 
 ### Map configuration
@@ -175,72 +173,70 @@ venue: {
 1. Search for the venue on [Naver Map](https://map.naver.com).
 2. Click the search result to view details.
 3. Check the browser address bar:
-   - In URLs like `https://map.naver.com/p/search/placename/place/12345678`, the last number is the `placeId`.
+  - In URLs like `https://map.naver.com/p/search/placename/place/12345678`, the last number is the `placeId`.
 4. In the directions URL you can find the zoom level and coordinates:
-   - `https://map.naver.com/p/directions/-/-/-/walk/place/12345678?c=17.08,0,0,0,dh`
-   - The first value after `c=` (`17.08`) is the `mapZoom` value.
+  - `https://map.naver.com/p/directions/-/-/-/walk/place/12345678?c=17.08,0,0,0,dh`
+  - The first value after `c=` (`17.08`) is the `mapZoom` value.
 5. Latitude and longitude can be found by opening Naver Map developer tools and running:
-   ```javascript
+  ```javascript
    // Run in browser console
    console.log(map.getCenter().toString());
    // Output: lat: 37.1234, lng: 127.5678
-   ```
+  ```
 
 ### Gallery configuration
 
-The gallery can be displayed in two layouts and two positions. Configure in `wedding-config.ts`:
+The gallery uses a **single folder** (`public/images/gallery/`). Images are **rotated randomly** on each load:
+
+- **Main (hero) image**: One random portrait from the gallery folder is chosen server-side per request.
+- **Gallery section**: The API returns a random subset of images (up to `maxDisplay`, default 9) from the same folder.
+
+You can still configure layout and position in `wedding-config.ts`:
 
 ```typescript
 gallery: {
   layout: "scroll", // "scroll" or "grid"
   position: "middle", // "middle" or "bottom"
-  images: [
-    "/images/gallery/image1.jpg",
-    "/images/gallery/image2.jpg",
-    "/images/gallery/image3.jpg",
-    "/images/gallery/image4.jpg",
-    "/images/gallery/image5.jpg",
-  ],
+  maxDisplay: 9,     // max images to show per load (shuffled each time)
+  images: [],       // fallback when folder read fails
 },
 ```
 
+#### Adding gallery images
+
+1. **Option A – Copy manually**  
+   Place image files (e.g. `.jpg`, `.webp`) in `public/images/gallery/`.  
+   Then run the analysis script once to regenerate the manifest (optional but recommended for portrait detection for the main image):
+   ```bash
+   npm run analyze-photos -- "path/to/your/photos" --copy
+   ```
+
+2. **Option B – Use the analysis script**  
+   From the project root:
+   ```bash
+   node scripts/analyze-photos.js "path/to/source/photos"        # report only
+   node scripts/analyze-photos.js "path/to/source/photos" --copy       # copy to gallery
+   node scripts/analyze-photos.js "path/to/source/photos" --copy --resize  # copy + resize to ~1200×900, <500KB
+   ```
+   With `--copy`, the script writes `public/images/gallery/manifest.json` (filename, dimensions, orientation). The server uses this to pick a random portrait for the main image without reading file dimensions on every request.
+
 #### Gallery layout options
 
-- **`"scroll"`**: Horizontal scroll gallery.
+- `**"scroll"**`: Horizontal scroll gallery.
   - Navigate with left/right arrow buttons
   - Touch swipe support
   - Efficient use of screen space
-  
-- **`"grid"`**: 3-column grid showing all images at once.
+- `**"grid"**`: 3-column grid showing all images at once.
   - View all gallery images on one screen
   - Responsive design optimized for mobile
   - Useful when you have many images
 
 #### Gallery position options
 
-- **`"middle"`**: Default position (after venue info)
+- `**"middle"**`: Default position (after venue info)
   - Main screen → Invitation message → Schedule → Venue info → **Gallery** → RSVP → Account info
-  
-- **`"bottom"`**: Bottom position (above Footer)
+- `**"bottom"`**: Bottom position (above Footer)
   - Main screen → Invitation message → Schedule → Venue info → RSVP → Account info → **Gallery**
-
-#### Gallery image order
-
-Gallery images are displayed in the order defined in `wedding-config.ts`. To change the order, adjust the `images` array:
-
-```typescript
-gallery: {
-  layout: "grid",
-  position: "middle",
-  images: [
-    "/images/gallery/favorite1.jpg", // First image
-    "/images/gallery/favorite2.jpg", // Second image
-    "/images/gallery/other1.jpg",
-    "/images/gallery/other2.jpg",
-    // ... more images
-  ],
-},
-```
 
 Both layouts support image zoom on click. In zoom view you can navigate with keyboard arrows, mouse wheel, and touch gestures.
 
@@ -256,22 +252,25 @@ To receive RSVP notifications in Slack:
 6. Choose the channel for notifications and click "Allow".
 7. Set the generated Webhook URL in `.env.local` as `NEXT_PUBLIC_SLACK_WEBHOOK_URL`.
 8. Configure the Slack channel in `wedding-config.ts`:
-   ```typescript
+  ```typescript
    slack: {
      webhookUrl: process.env.NEXT_PUBLIC_SLACK_WEBHOOK_URL || "",
      channel: "#wedding-rsvp", // Channel for notifications
    }
-   ```
+  ```
 
 ## Adding images and fonts
 
 ### Images
 
-Add wedding images to `public/images/`:
-- Main image: `public/images/main.jpg`
-- Gallery images: `public/images/gallery/image1.jpg`, `public/images/gallery/image2.jpg`, ...
+- **Main image**: Chosen at random from portrait images in `public/images/gallery/` (see Gallery configuration). Fallback is set in `wedding-config.ts` (`main.image`).
+- **Gallery images**: Place files in `public/images/gallery/`. The site shows a random subset each load. Use the optional script to copy/resize and generate a manifest:
+  ```bash
+  node scripts/analyze-photos.js "<source-photos-path>" --copy --resize
+  ```
 
 Image optimization tips:
+
 - Main image: 1080x1920px recommended (portrait mobile optimization)
 - Gallery images: 1200x900px recommended (4:3 ratio)
 - File size: JPG or WebP format, under 500KB per image recommended
@@ -279,6 +278,7 @@ Image optimization tips:
 ### Fonts
 
 Add custom fonts to `public/fonts/`:
+
 - MaruBuri-ExtraLight.ttf
 - MaruBuri-Light.ttf
 - MaruBuri-Regular.ttf
@@ -301,32 +301,29 @@ This project can be easily deployed to Vercel or Netlify.
 #### Deploy with Vercel CLI
 
 1. Install Vercel CLI:
-   ```
+  ```
    npm install -g vercel
-   ```
-
+  ```
 2. Log in:
-   ```
+  ```
    vercel login
-   ```
-
+  ```
 3. Deploy:
-   ```
+  ```
    vercel
-   ```
-   
+  ```
 4. Deploy to production:
-   ```
+  ```
    vercel --prod
-   ```
+  ```
 
 ### Netlify deployment
 
 1. Sign up at [Netlify](https://netlify.com) and connect your GitHub account.
 2. Create a new site and select this repository.
-3. Build settings: 
-   - Build command: `npm run build`
-   - Publish directory: `.next`
+3. Build settings:
+  - Build command: `npm run build`
+  - Publish directory: `.next`
 4. Set environment variables (from `.env.local`).
 5. (Optional) Configure a custom domain.
 
@@ -353,11 +350,11 @@ This project can be easily deployed to Vercel or Netlify.
 
 ### Pre-deployment checklist
 
-- [ ] Test API keys replaced with production keys
-- [ ] All personal information appropriately handled
-- [ ] `.gitignore` excludes sensitive files like `.env.local`
-- [ ] `wedding-config.ts` contains only real information
-- [ ] Test data and placeholder text replaced with actual content
+- Test API keys replaced with production keys
+- All personal information appropriately handled
+- `.gitignore` excludes sensitive files like `.env.local`
+- `wedding-config.ts` contains only real information
+- Test data and placeholder text replaced with actual content
 
 ## Performance optimization
 
@@ -374,6 +371,7 @@ This project includes the following performance optimizations:
 ### Share functionality
 
 Two ways to share the invitation:
+
 1. Copy URL: Copy the current URL to clipboard
 2. Share: Use Web Share API to open the device share menu
 
@@ -387,13 +385,13 @@ Two ways to share the invitation:
 - For authentication errors, verify:
   - Client ID is correct
   - Web service URL includes the current domain
-  - http://localhost:3000 is registered for local development
+  - [http://localhost:3000](http://localhost:3000) is registered for local development
   - Actual domain is registered for production deployment
 
 ### RSVP notifications not sending to Slack
 
 - Verify the correct Slack Webhook URL is set in `.env.local`.
-- Check the Webhook URL format (https://hooks.slack.com/services/...).
+- Check the Webhook URL format ([https://hooks.slack.com/services/](https://hooks.slack.com/services/)...).
 - Ensure the Slack app is correctly installed in the workspace.
 - Verify the notification channel exists and the app has access.
 
@@ -449,6 +447,7 @@ This project is released under the CC BY-NC-ND (Attribution-NonCommercial-NoDeri
 This work is licensed under the [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License](https://creativecommons.org/licenses/by-nc-nd/4.0/deed.en).
 
 The following restrictions apply:
+
 - **Attribution (BY)**: You must give appropriate credit to the original author.
 - **NonCommercial (NC)**: This work may not be used for commercial purposes. You may not use this project to provide paid services or derive commercial benefit.
 - **NoDerivatives (ND)**: You may not remix, transform, or build upon this work. You may not modify this project's code to create or distribute other projects.
@@ -459,3 +458,4 @@ Additionally, except for personal wedding use, you may not replicate this projec
 
 - Fonts: [MaruBuri](https://hangeul.naver.com/font) is a free font from Naver. [PlayfairDisplay](https://fonts.google.com/specimen/Playfair+Display) is licensed under the Open Font License.
 - Images: Sample images are from Unsplash or personal photos. For testing only. Respect copyright when using in production.
+

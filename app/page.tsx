@@ -1,78 +1,31 @@
-'use client';
-
-import { Suspense, useMemo } from 'react';
-import dynamic from 'next/dynamic';
-import MainSection from '../src/components/sections/MainSection';
+import path from 'path';
+import fs from 'fs';
+import HomePage from "./HomePage";
 import { weddingConfig } from '../src/config/wedding-config';
 
-// 동적 임포트로 코드 분할 및 지연 로딩 적용
-const DateSection = dynamic(() => import('../src/components/sections/DateSection'), {
-  loading: () => <div style={{ padding: '4rem 1.5rem', textAlign: 'center' }}>Loading...</div>
-});
+type PageProps = Readonly<{
+  params?: Promise<Record<string, string | string[]>>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}>;
 
-// 카카오맵 API는 클라이언트 사이드에서만 로드되어야 함
-const VenueSection = dynamic(() => import('../src/components/sections/VenueSection'), {
-  ssr: false,
-  loading: () => <div style={{ padding: '4rem 1.5rem', textAlign: 'center' }}>Loading...</div>
-});
+function pickRandomMainImage(): string | undefined {
+  try {
+    const manifestPath = path.join(process.cwd(), 'public/images/gallery/manifest.json');
+    if (!fs.existsSync(manifestPath)) return undefined;
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    const portraits = manifest.filter((e: { orientation: string }) => e.orientation === 'portrait');
+    const pool = portraits.length > 0 ? portraits : manifest;
+    if (pool.length === 0) return undefined;
+    const i = Math.floor(Math.random() * pool.length);
+    return pool[i].path;
+  } catch {
+    return undefined;
+  }
+}
 
-const GallerySection = dynamic(() => import('../src/components/sections/GallerySection'), {
-  loading: () => <div style={{ padding: '4rem 1.5rem', textAlign: 'center' }}>Loading...</div>
-});
-
-const InvitationSection = dynamic(() => import('../src/components/sections/InvitationSection'));
-const RsvpSection = dynamic(() => import('../src/components/sections/RsvpSection'));
-const AccountSection = dynamic(() => import('../src/components/sections/AccountSection'));
-const Footer = dynamic(() => import('../src/components/sections/Footer'));
-
-export default function Home() {
-  // 갤러리 위치 설정
-  const galleryPosition = weddingConfig.gallery.position || 'middle';
-  const showRsvp = weddingConfig.rsvp?.enabled ?? true;
-
-  // 실제 렌더링되는 섹션들의 순서를 계산하여 색상 인덱스 결정
-  const sectionColorMap = useMemo(() => {
-    const sections = [];
-    
-    // MainSection은 색상 계산에서 제외 (항상 기본 스타일)
-    sections.push('invitation'); // InvitationSection
-    sections.push('date'); // DateSection  
-    sections.push('venue'); // VenueSection
-    
-    if (galleryPosition === 'middle') {
-      sections.push('gallery-middle'); // GallerySection (middle)
-    }
-    
-    if (showRsvp) {
-      sections.push('rsvp'); // RsvpSection
-    }
-    
-    sections.push('account'); // AccountSection
-    
-    if (galleryPosition === 'bottom') {
-      sections.push('gallery-bottom'); // GallerySection (bottom)
-    }
-    
-    // 각 섹션에 색상 인덱스 할당 (0부터 시작하여 번갈아가며)
-    const colorMap: Record<string, 'white' | 'beige'> = {};
-    sections.forEach((section, index) => {
-      colorMap[section] = index % 2 === 0 ? 'white' : 'beige';
-    });
-    
-    return colorMap;
-  }, [galleryPosition, showRsvp]);
-
-  return (
-    <main>
-      <MainSection />
-      <InvitationSection bgColor={sectionColorMap['invitation']} />
-      <DateSection bgColor={sectionColorMap['date']} />
-      <VenueSection bgColor={sectionColorMap['venue']} />
-      {galleryPosition === 'middle' && <GallerySection bgColor={sectionColorMap['gallery-middle']} />}
-      {showRsvp && <RsvpSection bgColor={sectionColorMap['rsvp']} />}
-      <AccountSection bgColor={sectionColorMap['account']} />
-      {galleryPosition === 'bottom' && <GallerySection bgColor={sectionColorMap['gallery-bottom']} />}
-      <Footer />
-    </main>
-  );
+export default async function Page({ params, searchParams }: PageProps) {
+  if (params) await params;
+  if (searchParams) await searchParams;
+  const mainImageUrl = pickRandomMainImage() ?? weddingConfig.main.image;
+  return <HomePage mainImageUrl={mainImageUrl} />;
 }
