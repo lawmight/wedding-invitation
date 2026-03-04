@@ -17,19 +17,75 @@ declare global {
 
 // AMAP (高德) uses [lng, lat]; types for loaded AMap namespace
 interface AMapNamespace {
-  Map: new (container: string | HTMLElement, opts?: { center?: [number, number]; zoom?: number }) => AMapMap;
-  Marker: new (opts: { position: [number, number]; map?: AMapMap }) => AMapMarker;
+  Map: new (container: string | HTMLElement, opts?: { center?: [number, number]; zoom?: number; mapStyle?: string }) => AMapMap;
+  Marker: new (opts: { position: [number, number]; map?: AMapMap; title?: string }) => AMapMarker;
   InfoWindow: new (opts: { content?: string }) => AMapInfoWindow;
+  TileLayer: {
+    Traffic: new (opts?: { autoRefresh?: boolean; interval?: number }) => AMapTrafficLayer;
+  };
+  Geolocation: new (opts?: { enableHighAccuracy?: boolean; timeout?: number }) => AMapGeolocation;
+  Walking: new (opts?: { map?: AMapMap; panel?: string | HTMLElement }) => AMapWalking;
+  Driving: new (opts?: { map?: AMapMap; panel?: string | HTMLElement; policy?: number }) => AMapDriving;
+  plugin(plugins: string[], cb: () => void): void;
 }
 interface AMapMap {
   setCenter(center: [number, number]): void;
+  add(target: unknown): void;
+  remove(target: unknown): void;
   destroy(): void;
 }
 interface AMapMarker {
   setMap(map: AMapMap | null): void;
+  on(event: 'click', handler: () => void): void;
 }
 interface AMapInfoWindow {
   open(map: AMapMap, position: [number, number]): void;
+}
+interface AMapTrafficLayer {
+  setMap(map: AMapMap | null): void;
+}
+interface AMapPositionResult {
+  position?: {
+    lng: number;
+    lat: number;
+  };
+  message?: string;
+}
+interface AMapPluginResult {
+  info?: string;
+  message?: string;
+  result?: {
+    routes?: Array<{
+      distance?: number;
+      time?: number;
+      steps?: Array<{
+        instruction?: string;
+        distance?: number;
+      }>;
+    }>;
+  };
+}
+interface AMapGeolocation {
+  getCurrentPosition(cb: (status: 'complete' | 'error', result: AMapPositionResult) => void): void;
+}
+interface AMapWalking {
+  search(
+    origin: [number, number],
+    destination: [number, number],
+    cb: (status: 'complete' | 'error', result: AMapPluginResult) => void
+  ): void;
+  on(event: 'complete' | 'error', handler: (result: AMapPluginResult) => void): void;
+  off(event: 'complete' | 'error', handler: (result: AMapPluginResult) => void): void;
+}
+interface AMapDriving {
+  search(
+    origin: [number, number],
+    destination: [number, number],
+    options: { waypoints?: [number, number][] },
+    cb: (status: 'complete' | 'error', result: AMapPluginResult) => void
+  ): void;
+  on(event: 'complete' | 'error', handler: (result: AMapPluginResult) => void): void;
+  off(event: 'complete' | 'error', handler: (result: AMapPluginResult) => void): void;
 }
 
 // 텍스트의 \n을 <br />로 변환하는 함수
@@ -48,12 +104,20 @@ interface VenueSectionProps {
 
 const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
+  const routePanelRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<AMapMap | null>(null);
+  const trafficLayerRef = useRef<AMapTrafficLayer | null>(null);
+  const geolocationRef = useRef<AMapGeolocation | null>(null);
+  const walkingRef = useRef<AMapWalking | null>(null);
+  const drivingRef = useRef<AMapDriving | null>(null);
   const amapKey = process.env.NEXT_PUBLIC_AMAP_KEY || '';
   const amapSecurityCode = process.env.NEXT_PUBLIC_AMAP_SECURITY_JS_CODE || '';
   const debugInfo = useMemo(() => amapKey ? `Key: ${amapKey.substring(0, 4)}...` : 'No AMAP key', [amapKey]);
 
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState(false);
+  const [trafficVisible, setTrafficVisible] = useState(false);
+  const [routeStatusMessage, setRouteStatusMessage] = useState('');
   const hasAmapKeys = !!(amapKey && amapSecurityCode);
   // 배차 안내 펼침/접기 상태 관리
   const [expandedShuttle, setExpandedShuttle] = useState<'groom' | 'bride' | null>(null);
@@ -65,6 +129,122 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
     } else {
       setExpandedShuttle(shuttle);
     }
+  };
+
+  const clearRoutePanel = () => {
+    if (routePanelRef.current) {
+      routePanelRef.current.innerHTML = '';
+    }
+  };
+
+  const setRoutePanelHtml = (html: string) => {
+    if (routePanelRef.current) {
+      routePanelRef.current.innerHTML = html;
+    }
+  };
+
+  const renderDrivingResult = (result: AMapPluginResult) => {
+    const route = result.result?.routes?.[0];
+    if (!route) {
+      setRoutePanelHtml('<p>No driving route found.</p>');
+      return;
+    }
+    const minutes = route.time ? Math.round(route.time / 60) : null;
+    const km = route.distance ? (route.distance / 1000).toFixed(1) : null;
+    const steps = route.steps ?? [];
+    const stepsHtml = steps
+      .map((step, idx) => {
+        const distanceText = step.distance ? ` (${Math.round(step.distance)}m)` : '';
+        return `<li>${idx + 1}. ${step.instruction ?? 'Continue'}${distanceText}</li>`;
+      })
+      .join('');
+
+    setRoutePanelHtml(`
+      <div>
+        <p><strong>Driving route</strong>${km ? ` · ${km} km` : ''}${minutes ? ` · about ${minutes} min` : ''}</p>
+        ${steps.length > 0 ? `<ol style="padding-left: 1rem; margin: 0.5rem 0 0;">${stepsHtml}</ol>` : '<p>Step details are unavailable.</p>'}
+      </div>
+    `);
+  };
+
+  const getCurrentPosition = (): Promise<[number, number]> => {
+    return new Promise((resolve, reject) => {
+      if (!geolocationRef.current) {
+        reject(new Error('Geolocation is not ready yet.'));
+        return;
+      }
+      geolocationRef.current.getCurrentPosition((status, result) => {
+        if (status === 'complete' && result.position) {
+          resolve([result.position.lng, result.position.lat]);
+          return;
+        }
+        reject(new Error(result.message || 'Unable to get your current location.'));
+      });
+    });
+  };
+
+  const runRouteSearch = async (mode: 'walk' | 'drive') => {
+    if (!mapInstanceRef.current) {
+      setRouteStatusMessage('Map is not ready yet.');
+      return;
+    }
+
+    setRouteStatusMessage('Getting your current location...');
+    clearRoutePanel();
+
+    try {
+      const origin = await getCurrentPosition();
+      const destination: [number, number] = [weddingConfig.venue.coordinates.longitude, weddingConfig.venue.coordinates.latitude];
+
+      if (mode === 'walk') {
+        if (!walkingRef.current) {
+          setRouteStatusMessage('Walking service is not ready yet.');
+          return;
+        }
+        setRouteStatusMessage('Searching walking route...');
+        walkingRef.current.search(origin, destination, (status, result) => {
+          if (status === 'complete') {
+            setRouteStatusMessage('');
+            return;
+          }
+          setRouteStatusMessage(result.message || 'Walking route search failed.');
+        });
+        return;
+      }
+
+      if (!drivingRef.current) {
+        setRouteStatusMessage('Driving service is not ready yet.');
+        return;
+      }
+      setRouteStatusMessage('Searching driving route...');
+      drivingRef.current.search(origin, destination, { waypoints: [] }, (status, result) => {
+        if (status === 'complete') {
+          renderDrivingResult(result);
+          setRouteStatusMessage('');
+          return;
+        }
+        setRouteStatusMessage(result.message || 'Driving route search failed.');
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to get route.';
+      setRouteStatusMessage(message);
+    }
+  };
+
+  const toggleTraffic = () => {
+    const map = mapInstanceRef.current;
+    const trafficLayer = trafficLayerRef.current;
+    if (!map || !trafficLayer) {
+      return;
+    }
+
+    if (trafficVisible) {
+      map.remove(trafficLayer);
+      setTrafficVisible(false);
+      return;
+    }
+    map.add(trafficLayer);
+    setTrafficVisible(true);
   };
 
   // AMAP (高德地图) JS API load via Loader
@@ -123,11 +303,16 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
   useEffect(() => {
     if (!mapLoaded || !mapRef.current || mapError || !window.AMapLoader) return;
 
-    let mapInstance: AMapMap | null = null;
+    let unmounted = false;
+    let walkingCompleteHandler: ((result: AMapPluginResult) => void) | null = null;
+    let walkingErrorHandler: ((result: AMapPluginResult) => void) | null = null;
+    let drivingCompleteHandler: ((result: AMapPluginResult) => void) | null = null;
+    let drivingErrorHandler: ((result: AMapPluginResult) => void) | null = null;
 
     window.AMapLoader.load({ key: amapKey, version: '2.0' })
       .then((AMap) => {
-        if (!mapRef.current) return;
+        if (unmounted || !mapRef.current) return;
+
         try {
           const lng = weddingConfig.venue.coordinates.longitude;
           const lat = weddingConfig.venue.coordinates.latitude;
@@ -137,15 +322,78 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
           const map = new AMap.Map(AMAP_CONTAINER_ID, {
             center,
             zoom,
+            ...(weddingConfig.venue.amapMapStyleId ? { mapStyle: weddingConfig.venue.amapMapStyleId } : {}),
           });
-          mapInstance = map as unknown as AMapMap;
+          mapInstanceRef.current = map;
 
-          new AMap.Marker({ position: center, map: map as unknown as AMapMap });
-          const infoLabel = weddingConfig.venue.amapAddress ?? weddingConfig.venue.name;
-          const infoWindow = new AMap.InfoWindow({
-            content: `<div style="padding:10px;min-width:150px;text-align:center;font-size:14px;"><strong>${infoLabel}</strong></div>`,
+          const trafficLayer = new AMap.TileLayer.Traffic({ autoRefresh: true, interval: 180 });
+          trafficLayerRef.current = trafficLayer;
+          setTrafficVisible(false);
+
+          const timelineLocations = weddingConfig.venue.timelineLocations ?? [];
+          if (timelineLocations.length > 0) {
+            timelineLocations.forEach((location, index) => {
+              const position: [number, number] = [location.lng, location.lat];
+              const marker = new AMap.Marker({ position, map, title: `${index + 1}. ${location.name}` });
+              const infoWindow = new AMap.InfoWindow({
+                content: `<div style="padding:10px;min-width:180px;font-size:14px;">
+                  <strong>${location.time} · ${location.name}</strong>
+                  <p style="margin:6px 0 0;">${location.desc}</p>
+                </div>`,
+              });
+              marker.on('click', () => infoWindow.open(map, position));
+              if (index === 0) {
+                infoWindow.open(map, position);
+              }
+            });
+          } else {
+            const infoLabel = weddingConfig.venue.amapAddress ?? weddingConfig.venue.name;
+            const marker = new AMap.Marker({ position: center, map, title: infoLabel });
+            const infoWindow = new AMap.InfoWindow({
+              content: `<div style="padding:10px;min-width:150px;text-align:center;font-size:14px;"><strong>${infoLabel}</strong></div>`,
+            });
+            marker.on('click', () => infoWindow.open(map, center));
+            infoWindow.open(map, center);
+          }
+
+          const photoSpots = weddingConfig.venue.photoSpots ?? [];
+          photoSpots.forEach((spot) => {
+            const position: [number, number] = [spot.lng, spot.lat];
+            const marker = new AMap.Marker({ position, map, title: `Photo: ${spot.name}` });
+            const infoWindow = new AMap.InfoWindow({
+              content: `<div style="padding:10px;min-width:180px;font-size:14px;">
+                <strong>📸 ${spot.name}</strong>
+                <p style="margin:6px 0 0;">${spot.desc}</p>
+              </div>`,
+            });
+            marker.on('click', () => infoWindow.open(map, position));
           });
-          infoWindow.open(map as unknown as AMapMap, center);
+
+          AMap.plugin(['AMap.Driving', 'AMap.Walking', 'AMap.Geolocation'], () => {
+            if (unmounted || !mapInstanceRef.current) return;
+            const panel = routePanelRef.current ?? undefined;
+            geolocationRef.current = new AMap.Geolocation({ enableHighAccuracy: true, timeout: 10000 });
+            walkingRef.current = new AMap.Walking({ map: mapInstanceRef.current, ...(panel ? { panel } : {}) });
+            drivingRef.current = new AMap.Driving();
+
+            walkingCompleteHandler = () => {
+              setRouteStatusMessage('');
+            };
+            walkingErrorHandler = (result: AMapPluginResult) => {
+              setRouteStatusMessage(result.message || 'Walking route search failed.');
+            };
+            drivingCompleteHandler = () => {
+              setRouteStatusMessage('');
+            };
+            drivingErrorHandler = (result: AMapPluginResult) => {
+              setRouteStatusMessage(result.message || 'Driving route search failed.');
+            };
+
+            walkingRef.current.on('complete', walkingCompleteHandler);
+            walkingRef.current.on('error', walkingErrorHandler);
+            drivingRef.current.on('complete', drivingCompleteHandler);
+            drivingRef.current.on('error', drivingErrorHandler);
+          });
         } catch (error) {
           console.error('AMAP map init error:', error);
           setMapError(true);
@@ -157,9 +405,33 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
       });
 
     return () => {
-      if (mapInstance && typeof (mapInstance as AMapMap & { destroy?: () => void }).destroy === 'function') {
-        (mapInstance as AMapMap & { destroy: () => void }).destroy();
+      unmounted = true;
+      setTrafficVisible(false);
+      clearRoutePanel();
+      geolocationRef.current = null;
+
+      if (walkingRef.current && walkingCompleteHandler && walkingErrorHandler) {
+        walkingRef.current.off('complete', walkingCompleteHandler);
+        walkingRef.current.off('error', walkingErrorHandler);
       }
+      if (drivingRef.current && drivingCompleteHandler && drivingErrorHandler) {
+        drivingRef.current.off('complete', drivingCompleteHandler);
+        drivingRef.current.off('error', drivingErrorHandler);
+      }
+
+      walkingRef.current = null;
+      drivingRef.current = null;
+
+      if (mapInstanceRef.current && trafficLayerRef.current) {
+        mapInstanceRef.current.remove(trafficLayerRef.current);
+        trafficLayerRef.current.setMap(null);
+      }
+      trafficLayerRef.current = null;
+
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.destroy();
+      }
+      mapInstanceRef.current = null;
     };
   }, [mapLoaded, mapError, amapKey]);
   
@@ -222,6 +494,24 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
           <MapContainer ref={mapRef} id={AMAP_CONTAINER_ID} />
           {!mapLoaded && <MapLoading>Loading map...{debugInfo}</MapLoading>}
         </div>
+      )}
+
+      {hasAmapKeys && !mapError && (
+        <>
+          <MapActionButtonsContainer>
+            <NavigateButton onClick={toggleTraffic} $mapType="amap" type="button">
+              {trafficVisible ? 'Hide traffic' : 'Show traffic'}
+            </NavigateButton>
+            <NavigateButton onClick={() => void runRouteSearch('drive')} $mapType="amap" type="button">
+              Drive here
+            </NavigateButton>
+            <NavigateButton onClick={() => void runRouteSearch('walk')} $mapType="amap" type="button">
+              Walk here
+            </NavigateButton>
+          </MapActionButtonsContainer>
+          {routeStatusMessage && <RouteStatusText>{routeStatusMessage}</RouteStatusText>}
+          <RoutePanel ref={routePanelRef} id="route-panel" />
+        </>
       )}
       
       <NavigateButtonsContainer>
@@ -446,6 +736,33 @@ const NavigateButtonsContainer = styled.div`
   max-width: 36rem;
   margin-left: auto;
   margin-right: auto;
+`;
+
+const MapActionButtonsContainer = styled(NavigateButtonsContainer)`
+  margin-bottom: 0.75rem;
+`;
+
+const RouteStatusText = styled.p`
+  max-width: 36rem;
+  margin: 0 auto 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-medium);
+`;
+
+const RoutePanel = styled.div`
+  max-width: 36rem;
+  margin: 0 auto 1.5rem;
+  text-align: left;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--text-dark);
+  min-height: 2.5rem;
+
+  &:empty {
+    display: none;
+  }
 `;
 
 const NavigateButton = styled.button<{ $mapType?: 'amap' | 'baidu' | 'google' | 'apple' }>`
