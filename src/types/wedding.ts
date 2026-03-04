@@ -31,6 +31,20 @@ export interface Venue {
   naverMapId: string;
   /** Optional address used for AMap (高德) navigation destination name; defaults to venue.name */
   amapAddress?: string;
+  photoSpots?: Array<{
+    lng: number;
+    lat: number;
+    name: string;
+    desc: string;
+  }>;
+  timelineLocations?: Array<{
+    time: string;
+    name: string;
+    lng: number;
+    lat: number;
+    desc: string;
+  }>;
+  amapMapStyleId?: string;
   coordinates: {
     latitude: number;
     longitude: number;
