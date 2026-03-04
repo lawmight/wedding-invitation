@@ -56,10 +56,44 @@ export const weddingConfig = {
     tel: "02-1234-5678",
     naverMapId: "Zongcheng Real Estate Building", // Place name for Naver Maps search
     amapAddress: "嘉兴市桐乡市中山西路联建房105幢", // Address used for AMap (高德) navigation
+    // Optional custom style from AMap Style Editor (e.g. "amap://styles/your-style-id")
+    amapMapStyleId: "",
     coordinates: {
       latitude: 30.640054,
       longitude: 120.542085,
     },
+    // Optional photo spot markers near the venue
+    photoSpots: [
+      {
+        lng: 120.483935,
+        lat: 30.749724,
+        name: "Wuzhen West Gate (西栅)",
+        desc: "Classic Jiangnan water town—canals, old buildings, and boat rides. Best for couple and group photos; 2–4 hours from Tongxiang.",
+      },
+      {
+        lng: 120.5829,
+        lat: 30.6467,
+        name: "Fenghuang Lake (凤凰湖)",
+        desc: "886-acre lakeside park in Zhen Dong New District. Sunset reflections, open lawns, and waterfront walkways—ideal for couple portraits and golden-hour shots. ~10 min by car from the venue.",
+      },
+    ],
+    // Optional wedding-day timeline markers; when set, these replace the single venue marker
+    timelineLocations: [
+      {
+        time: "09:30",
+        name: "Marriage registration",
+        lng: 120.5342,
+        lat: 30.6422,
+        desc: "桐乡市民政局婚姻登记处 · No. 131 Zhongshan West Road, Wutong Sub-district. Tel: 0573-88022156. Open Mon–Fri 8:30–12:00, 14:00–17:30.",
+      },
+      {
+        time: "12:30",
+        name: "Ceremony",
+        lng: 120.542085,
+        lat: 30.640054,
+        desc: "Main ceremony at Zongcheng Real Estate Building, Room 402.",
+      },
+    ],
     placeId: "123456789", // Naver Maps place ID
     mapZoom: "17", // Map zoom level
     mapNaverCoordinates: "14141300,4507203,15,0,0,0,dh", // Naver Maps directions URL coordinates
