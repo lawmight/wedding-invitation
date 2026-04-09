@@ -3,13 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "postinstall": "node scripts/update-version.js",
     "dev": "next dev --turbopack",
     "prebuild": "node scripts/update-version.js",
     "build": "next build",
     "build:turbo": "next build --turbopack",
     "build:fresh": "npm run prebuild && npm run build",
     "start": "next start",
-    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "lint": "eslint . --ignore-pattern .next --ignore-pattern node_modules",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "analyze-photos": "node scripts/analyze-photos.js",
     "generate-qr": "node scripts/generate-qr.js"
   },
@@ -18,7 +22,8 @@
     "next": "^16.1.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "styled-components": "^6.1.18"
+    "styled-components": "^6.1.18",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -33,6 +38,7 @@
     "qrcode": "^1.5.4",
     "sharp": "^0.33.5",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.4"
   }
 }

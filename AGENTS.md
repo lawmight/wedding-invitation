@@ -11,7 +11,8 @@ This is a **Next.js 16 (App Router)** wedding invitation single-page web app usi
 | Install deps | `npm install` |
 | Dev server | `npm run dev` (Turbopack, port 3000) |
 | Build | `npm run build` |
-| Type check | `npx tsc --noEmit` |
+| Type check | `npm run typecheck` |
+| Tests | `npm test` |
 
 ### Linting
 
@@ -19,7 +20,7 @@ This is a **Next.js 16 (App Router)** wedding invitation single-page web app usi
 
 ### Environment variables
 
-All external API keys (AMAP, Naver Map, Slack webhook) are **optional**. The app runs fully without them; only the embedded map and Slack RSVP notifications will be absent. See the README for full details on `.env.local` keys.
+All external API keys (AMAP, Naver Map, Slack webhook) are **optional**. The app runs fully without them; only the embedded map and Slack RSVP notifications will be absent. For Slack, use the server-only variable `SLACK_WEBHOOK_URL` in `.env.local` (see README). `NEXT_PUBLIC_SLACK_WEBHOOK_URL` is still read for backward compatibility but is not recommended because it exposes the webhook to the browser bundle.
 
 ### Configuration
 

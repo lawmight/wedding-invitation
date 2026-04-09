@@ -49,8 +49,9 @@ If this project has been helpful, show your support with a cup of coffee! Your s
 | Install deps  | `npm install`        |
 | Dev server    | `npm run dev` (Turbopack, port 3000) |
 | Build         | `npm run build`      |
-| Type check    | `npx tsc --noEmit`   |
+| Type check    | `npm run typecheck`  |
 | Lint          | `npm run lint`       |
+| Tests         | `npm test`           |
 
 ### Environment setup
 
@@ -61,7 +62,7 @@ All external API keys (AMAP, Naver Map, Slack webhook) are **optional**. The app
    git clone https://github.com/your-username/wedding-invitation.git
    cd wedding-invitation
   ```
-2. Install dependencies:
+2. Install dependencies (this also writes `public/build-version.json` for client cache busting; the file is gitignored):
   ```
    npm install
   ```
@@ -74,8 +75,8 @@ All external API keys (AMAP, Naver Map, Slack webhook) are **optional**. The app
    # Naver Map (direction button only)
    NEXT_PUBLIC_NAVER_MAP_CLIENT_ID=your_naver_map_client_id
 
-   # Slack Webhook URL (for RSVP notifications)
-   NEXT_PUBLIC_SLACK_WEBHOOK_URL=your_slack_webhook_url
+   # Slack Incoming Webhook (server-only — not exposed to the browser)
+   SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
 
    # Site URL (after deployment)
    NEXT_PUBLIC_SITE_URL=https://your-wedding-site.com
@@ -264,14 +265,8 @@ To receive RSVP notifications in Slack:
 4. Select "Incoming Webhooks" in the left menu and enable it.
 5. Click "Add New Webhook to Workspace".
 6. Choose the channel for notifications and click "Allow".
-7. Set the generated Webhook URL in `.env.local` as `NEXT_PUBLIC_SLACK_WEBHOOK_URL`.
-8. Configure the Slack channel in `wedding-config.ts`:
-  ```typescript
-   slack: {
-     webhookUrl: process.env.NEXT_PUBLIC_SLACK_WEBHOOK_URL || "",
-     channel: "#wedding-rsvp", // Channel for notifications
-   }
-  ```
+7. Set the generated Webhook URL in `.env.local` as **`SLACK_WEBHOOK_URL`** (recommended). The legacy name `NEXT_PUBLIC_SLACK_WEBHOOK_URL` is still supported on the server but exposes the secret to client bundles—avoid it in production.
+8. Configure display options in `wedding-config.ts` under `slack` (channel label, compact message). The webhook URL is not stored in that file.
 
 ## Adding images and fonts
 
@@ -299,6 +294,10 @@ Add custom fonts to `public/fonts/`:
 - MaruBuri-SemiBold.ttf
 - MaruBuri-Bold.ttf
 - PlayfairDisplay-Italic.ttf
+
+## Styling
+
+The UI uses **styled-components** for section layout and components, and **Tailwind** utility classes where they keep markup concise (for example in `app/`). Prefer extending existing styled-components patterns when changing section chrome; use Tailwind for small utility tweaks if it matches surrounding markup.
 
 ## Deployment
 

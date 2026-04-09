@@ -187,9 +187,8 @@ export const weddingConfig = {
     showMealOption: false, // Show meal option input
   },
 
-  // Slack notification settings
+  // Slack notification settings (webhook URL: server-only SLACK_WEBHOOK_URL in .env.local)
   slack: {
-    webhookUrl: process.env.NEXT_PUBLIC_SLACK_WEBHOOK_URL || "",
     channel: "#wedding-response",
     compactMessage: true, // Display Slack messages concisely
   },

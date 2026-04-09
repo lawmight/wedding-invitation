@@ -44,7 +44,7 @@ export async function GET() {
         error: 'An error occurred while loading the gallery images.',
         images: weddingConfig.gallery.images,
       },
-      { status: 200 }
+      { status: 500 }
     );
   }
 }

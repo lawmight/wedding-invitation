@@ -41,3 +41,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env*.local
+
+# Generated at build time (see scripts/update-version.js)
+public/build-version.json
