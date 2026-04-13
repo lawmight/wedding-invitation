@@ -52,7 +52,7 @@ export const weddingConfig = {
   // Venue information
   venue: {
     name: "Zongcheng Real Estate Building",
-    address: "Room 402, Unit 1, Zongcheng Real Estate Building\nNo. 105 Zhongshan West Road\nTongxian City, Jiaxing, Zhejiang Province, 314500\nChina",
+    address: "Room 402, Unit 1, Zongcheng Real Estate Building\nNo. 105 Zhongshan West Road\nTongxiang City, Jiaxing, Zhejiang Province, 314500\nChina",
     tel: "02-1234-5678",
     naverMapId: "Zongcheng Real Estate Building", // Place name for Naver Maps search
     amapAddress: "嘉兴市桐乡市中山西路联建房105幢", // Address used for AMap (高德) navigation
