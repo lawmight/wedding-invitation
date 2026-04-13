@@ -27,6 +27,11 @@ interface AMapNamespace {
   Walking: new (opts?: { map?: AMapMap; panel?: string | HTMLElement }) => AMapWalking;
   Driving: new (opts?: { map?: AMapMap; panel?: string | HTMLElement; policy?: number }) => AMapDriving;
   plugin(plugins: string[], cb: () => void): void;
+  convertFrom(
+    lnglats: [number, number][],
+    type: string,
+    callback: (status: string, result: AMapConvertFromResult) => void
+  ): void;
 }
 interface AMapMap {
   setCenter(center: [number, number]): void;
@@ -50,6 +55,10 @@ interface AMapPositionResult {
     lat: number;
   };
   message?: string;
+}
+interface AMapConvertFromResult {
+  info?: string;
+  locations?: Array<{ lng: number; lat: number }>;
 }
 interface AMapPluginResult {
   info?: string;
@@ -110,6 +119,7 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
   const geolocationRef = useRef<AMapGeolocation | null>(null);
   const walkingRef = useRef<AMapWalking | null>(null);
   const drivingRef = useRef<AMapDriving | null>(null);
+  const convertedVenueCenterRef = useRef<[number, number] | null>(null);
   const amapKey = process.env.NEXT_PUBLIC_AMAP_KEY || '';
   const amapSecurityCode = process.env.NEXT_PUBLIC_AMAP_SECURITY_JS_CODE || '';
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -205,7 +215,11 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
 
     try {
       const origin = await getCurrentPosition();
-      const destination: [number, number] = [weddingConfig.venue.coordinates.longitude, weddingConfig.venue.coordinates.latitude];
+      const destination: [number, number] =
+        convertedVenueCenterRef.current ?? [
+          weddingConfig.venue.coordinates.longitude,
+          weddingConfig.venue.coordinates.latitude,
+        ];
 
       if (mode === 'walk') {
         if (!walkingRef.current) {
@@ -322,90 +336,123 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
       .then((AMap) => {
         if (unmounted || !mapRef.current) return;
 
-        try {
-          const lng = weddingConfig.venue.coordinates.longitude;
-          const lat = weddingConfig.venue.coordinates.latitude;
-          const center: [number, number] = [lng, lat];
-          const zoom = parseInt(weddingConfig.venue.mapZoom, 10) || 15;
+        const venue = weddingConfig.venue;
+        const vLng = venue.coordinates.longitude;
+        const vLat = venue.coordinates.latitude;
+        const timelineLocations = venue.timelineLocations ?? [];
+        const photoSpots = venue.photoSpots ?? [];
+        const allPositions: [number, number][] = [[vLng, vLat]];
+        timelineLocations.forEach((loc) => allPositions.push([loc.lng, loc.lat]));
+        photoSpots.forEach((spot) => allPositions.push([spot.lng, spot.lat]));
 
-          const map = new AMap.Map(AMAP_CONTAINER_ID, {
-            center,
-            zoom,
-            ...(weddingConfig.venue.amapMapStyleId ? { mapStyle: weddingConfig.venue.amapMapStyleId } : {}),
-          });
-          mapInstanceRef.current = map;
+        const initMapWithPositions = (positions: [number, number][]) => {
+          if (unmounted || !mapRef.current) return;
 
-          const trafficLayer = new AMap.TileLayer.Traffic({ autoRefresh: true, interval: 180 });
-          trafficLayerRef.current = trafficLayer;
-          setTrafficVisible(false);
+          try {
+            const center = positions[0]!;
+            convertedVenueCenterRef.current = center;
+            const zoom = parseInt(venue.mapZoom, 10) || 15;
+            const timelinePositions = timelineLocations.map((_, i) => positions[1 + i]!);
+            const photoStart = 1 + timelineLocations.length;
+            const photoPositions = photoSpots.map((_, i) => positions[photoStart + i]!);
 
-          const timelineLocations = weddingConfig.venue.timelineLocations ?? [];
-          if (timelineLocations.length > 0) {
-            timelineLocations.forEach((location, index) => {
-              const position: [number, number] = [location.lng, location.lat];
-              const marker = new AMap.Marker({ position, map, title: `${index + 1}. ${location.name}` });
-              const infoWindow = new AMap.InfoWindow({
-                content: `<div style="padding:10px;min-width:180px;font-size:14px;">
+            const map = new AMap.Map(AMAP_CONTAINER_ID, {
+              center,
+              zoom,
+              ...(venue.amapMapStyleId ? { mapStyle: venue.amapMapStyleId } : {}),
+            });
+            mapInstanceRef.current = map;
+
+            const trafficLayer = new AMap.TileLayer.Traffic({ autoRefresh: true, interval: 180 });
+            trafficLayerRef.current = trafficLayer;
+            setTrafficVisible(false);
+
+            if (timelineLocations.length > 0) {
+              timelineLocations.forEach((location, index) => {
+                const position = timelinePositions[index] ?? center;
+                const marker = new AMap.Marker({ position, map, title: `${index + 1}. ${location.name}` });
+                const infoWindow = new AMap.InfoWindow({
+                  content: `<div style="padding:10px;min-width:180px;font-size:14px;">
                   <strong>${location.time} · ${location.name}</strong>
                   <p style="margin:6px 0 0;">${location.desc}</p>
                 </div>`,
+                });
+                marker.on('click', () => infoWindow.open(map, position));
+                if (index === 0) {
+                  infoWindow.open(map, position);
+                }
               });
-              marker.on('click', () => infoWindow.open(map, position));
-              if (index === 0) {
-                infoWindow.open(map, position);
-              }
-            });
-          } else {
-            const infoLabel = weddingConfig.venue.amapAddress ?? weddingConfig.venue.name;
-            const marker = new AMap.Marker({ position: center, map, title: infoLabel });
-            const infoWindow = new AMap.InfoWindow({
-              content: `<div style="padding:10px;min-width:150px;text-align:center;font-size:14px;"><strong>${infoLabel}</strong></div>`,
-            });
-            marker.on('click', () => infoWindow.open(map, center));
-            infoWindow.open(map, center);
-          }
+            } else {
+              const infoLabel = venue.amapAddress ?? venue.name;
+              const marker = new AMap.Marker({ position: center, map, title: infoLabel });
+              const infoWindow = new AMap.InfoWindow({
+                content: `<div style="padding:10px;min-width:150px;text-align:center;font-size:14px;"><strong>${infoLabel}</strong></div>`,
+              });
+              marker.on('click', () => infoWindow.open(map, center));
+              infoWindow.open(map, center);
+            }
 
-          const photoSpots = weddingConfig.venue.photoSpots ?? [];
-          photoSpots.forEach((spot) => {
-            const position: [number, number] = [spot.lng, spot.lat];
-            const marker = new AMap.Marker({ position, map, title: `Photo: ${spot.name}` });
-            const infoWindow = new AMap.InfoWindow({
-              content: `<div style="padding:10px;min-width:180px;font-size:14px;">
-                <strong>📸 ${spot.name}</strong>
+            photoSpots.forEach((spot, index) => {
+              const position = photoPositions[index] ?? center;
+              const marker = new AMap.Marker({ position, map, title: `Photo: ${spot.name}` });
+              const infoWindow = new AMap.InfoWindow({
+                content: `<div style="padding:10px;min-width:180px;font-size:14px;">
+                <strong>Photo: ${spot.name}</strong>
                 <p style="margin:6px 0 0;">${spot.desc}</p>
               </div>`,
+              });
+              marker.on('click', () => infoWindow.open(map, position));
             });
-            marker.on('click', () => infoWindow.open(map, position));
+
+            AMap.plugin(['AMap.Driving', 'AMap.Walking', 'AMap.Geolocation'], () => {
+              if (unmounted || !mapInstanceRef.current) return;
+              const panel = routePanelRef.current ?? undefined;
+              geolocationRef.current = new AMap.Geolocation({ enableHighAccuracy: true, timeout: 10000 });
+              walkingRef.current = new AMap.Walking({ map: mapInstanceRef.current, ...(panel ? { panel } : {}) });
+              drivingRef.current = new AMap.Driving();
+
+              walkingCompleteHandler = () => {
+                setRouteStatusMessage('');
+              };
+              walkingErrorHandler = (result: AMapPluginResult) => {
+                setRouteStatusMessage(result.message || 'Walking route search failed.');
+              };
+              drivingCompleteHandler = () => {
+                setRouteStatusMessage('');
+              };
+              drivingErrorHandler = (result: AMapPluginResult) => {
+                setRouteStatusMessage(result.message || 'Driving route search failed.');
+              };
+
+              walkingRef.current.on('complete', walkingCompleteHandler);
+              walkingRef.current.on('error', walkingErrorHandler);
+              drivingRef.current.on('complete', drivingCompleteHandler);
+              drivingRef.current.on('error', drivingErrorHandler);
+            });
+          } catch (error) {
+            console.error('AMAP map init error:', error);
+            setMapError(true);
+          }
+        };
+
+        if (venue.coordinatesInWGS84) {
+          AMap.convertFrom(allPositions, 'gps', (status, result) => {
+            if (unmounted || !mapRef.current) return;
+            if (
+              status === 'complete' &&
+              result.info === 'ok' &&
+              result.locations &&
+              result.locations.length === allPositions.length
+            ) {
+              const positions = result.locations.map((loc) => [loc.lng, loc.lat] as [number, number]);
+              initMapWithPositions(positions);
+            } else {
+              console.warn('AMap convertFrom failed or returned wrong count, using raw coordinates.');
+              initMapWithPositions(allPositions);
+            }
           });
-
-          AMap.plugin(['AMap.Driving', 'AMap.Walking', 'AMap.Geolocation'], () => {
-            if (unmounted || !mapInstanceRef.current) return;
-            const panel = routePanelRef.current ?? undefined;
-            geolocationRef.current = new AMap.Geolocation({ enableHighAccuracy: true, timeout: 10000 });
-            walkingRef.current = new AMap.Walking({ map: mapInstanceRef.current, ...(panel ? { panel } : {}) });
-            drivingRef.current = new AMap.Driving();
-
-            walkingCompleteHandler = () => {
-              setRouteStatusMessage('');
-            };
-            walkingErrorHandler = (result: AMapPluginResult) => {
-              setRouteStatusMessage(result.message || 'Walking route search failed.');
-            };
-            drivingCompleteHandler = () => {
-              setRouteStatusMessage('');
-            };
-            drivingErrorHandler = (result: AMapPluginResult) => {
-              setRouteStatusMessage(result.message || 'Driving route search failed.');
-            };
-
-            walkingRef.current.on('complete', walkingCompleteHandler);
-            walkingRef.current.on('error', walkingErrorHandler);
-            drivingRef.current.on('complete', drivingCompleteHandler);
-            drivingRef.current.on('error', drivingErrorHandler);
-          });
-        } catch (error) {
-          console.error('AMAP map init error:', error);
-          setMapError(true);
+        } else {
+          initMapWithPositions(allPositions);
         }
       })
       .catch((e: unknown) => {
@@ -415,6 +462,7 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
 
     return () => {
       unmounted = true;
+      convertedVenueCenterRef.current = null;
       setTrafficVisible(false);
       clearRoutePanel();
       geolocationRef.current = null;
@@ -459,10 +507,14 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
 
   const navigateToAmap = () => {
     if (typeof window === 'undefined') return;
-    const { latitude, longitude } = weddingConfig.venue.coordinates;
+    const [lng, lat] =
+      convertedVenueCenterRef.current ?? [
+        weddingConfig.venue.coordinates.longitude,
+        weddingConfig.venue.coordinates.latitude,
+      ];
     const name = encodeURIComponent(weddingConfig.venue.amapAddress ?? weddingConfig.venue.name);
-    // 高德 URI scheme: navigation to destination
-    const url = `https://uri.amap.com/navigation?dest=${longitude},${latitude}&destName=${name}`;
+    // 高德 URI scheme: navigation to destination (GCJ-02 when conversion was used)
+    const url = `https://uri.amap.com/navigation?dest=${lng},${lat}&destName=${name}`;
     window.open(url, '_blank');
   };
   

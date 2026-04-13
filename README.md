@@ -128,6 +128,10 @@ The **embedded map** on the venue section uses AMAP (高德地图) JavaScript AP
 
 Keys created after 2021-12-02 require the security code. See [AMAP JS API 2.0 加载](https://lbs.amap.com/api/javascript-api-v2/guide/abc/load).
 
+#### Coordinate system (WGS-84 vs GCJ-02)
+
+AMap uses **GCJ-02** coordinates. If your venue coordinates come from GPS, Google Maps, or OpenStreetMap (i.e. **WGS-84**), set `coordinatesInWGS84: true` in `wedding-config.ts` so the app converts them to GCJ-02 for the map, routing, and AMap navigation link. If your coordinates are already from AMap or a Chinese source (GCJ-02), omit this flag or set it to `false`.
+
 ## Naver Map (direction button only)
 
 ### How to get a Naver Cloud Platform API key

@@ -49,6 +49,8 @@ export interface Venue {
     latitude: number;
     longitude: number;
   };
+  /** When true, venue coordinates (center, timeline, photo spots) are WGS-84 and will be converted to GCJ-02 for AMap. Omit or false if coordinates are already GCJ-02 (e.g. from AMap). */
+  coordinatesInWGS84?: boolean;
   placeId: string;
   mapZoom: string;
   mapNaverCoordinates?: string;

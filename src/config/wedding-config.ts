@@ -62,6 +62,8 @@ export const weddingConfig = {
       latitude: 30.640054,
       longitude: 120.542085,
     },
+    // Set to true if coordinates are from GPS/Google/OSM (WGS-84); they will be converted to GCJ-02 for AMap
+    coordinatesInWGS84: true,
     // Optional photo spot markers near the venue
     photoSpots: [
       {
