@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { weddingConfig } from '../../config/wedding-config';
 
@@ -112,8 +112,6 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
   const drivingRef = useRef<AMapDriving | null>(null);
   const amapKey = process.env.NEXT_PUBLIC_AMAP_KEY || '';
   const amapSecurityCode = process.env.NEXT_PUBLIC_AMAP_SECURITY_JS_CODE || '';
-  const debugInfo = useMemo(() => amapKey ? `Key: ${amapKey.substring(0, 4)}...` : 'No AMAP key', [amapKey]);
-
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState(false);
   const [trafficVisible, setTrafficVisible] = useState(false);
@@ -132,39 +130,52 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
   };
 
   const clearRoutePanel = () => {
-    if (routePanelRef.current) {
-      routePanelRef.current.innerHTML = '';
-    }
-  };
-
-  const setRoutePanelHtml = (html: string) => {
-    if (routePanelRef.current) {
-      routePanelRef.current.innerHTML = html;
-    }
+    routePanelRef.current?.replaceChildren();
   };
 
   const renderDrivingResult = (result: AMapPluginResult) => {
+    const panel = routePanelRef.current;
+    if (!panel) return;
+    panel.replaceChildren();
+
     const route = result.result?.routes?.[0];
     if (!route) {
-      setRoutePanelHtml('<p>No driving route found.</p>');
+      const p = document.createElement('p');
+      p.textContent = 'No driving route found.';
+      panel.appendChild(p);
       return;
     }
     const minutes = route.time ? Math.round(route.time / 60) : null;
     const km = route.distance ? (route.distance / 1000).toFixed(1) : null;
     const steps = route.steps ?? [];
-    const stepsHtml = steps
-      .map((step, idx) => {
-        const distanceText = step.distance ? ` (${Math.round(step.distance)}m)` : '';
-        return `<li>${idx + 1}. ${step.instruction ?? 'Continue'}${distanceText}</li>`;
-      })
-      .join('');
 
-    setRoutePanelHtml(`
-      <div>
-        <p><strong>Driving route</strong>${km ? ` · ${km} km` : ''}${minutes ? ` · about ${minutes} min` : ''}</p>
-        ${steps.length > 0 ? `<ol style="padding-left: 1rem; margin: 0.5rem 0 0;">${stepsHtml}</ol>` : '<p>Step details are unavailable.</p>'}
-      </div>
-    `);
+    const wrap = document.createElement('div');
+    const titleP = document.createElement('p');
+    const strong = document.createElement('strong');
+    strong.textContent = 'Driving route';
+    titleP.appendChild(strong);
+    if (km) titleP.append(document.createTextNode(` · ${km} km`));
+    if (minutes != null) titleP.append(document.createTextNode(` · about ${minutes} min`));
+    wrap.appendChild(titleP);
+
+    if (steps.length > 0) {
+      const ol = document.createElement('ol');
+      ol.style.paddingLeft = '1rem';
+      ol.style.margin = '0.5rem 0 0';
+      steps.forEach((step, idx) => {
+        const li = document.createElement('li');
+        const distanceText = step.distance ? ` (${Math.round(step.distance)}m)` : '';
+        const instruction = step.instruction ?? 'Continue';
+        li.textContent = `${idx + 1}. ${instruction}${distanceText}`;
+        ol.appendChild(li);
+      });
+      wrap.appendChild(ol);
+    } else {
+      const p = document.createElement('p');
+      p.textContent = 'Step details are unavailable.';
+      wrap.appendChild(p);
+    }
+    panel.appendChild(wrap);
   };
 
   const getCurrentPosition = (): Promise<[number, number]> => {
@@ -293,9 +304,7 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
 
     const mapEl = mapRef.current;
     return () => {
-      if (mapEl) {
-        mapEl.innerHTML = '';
-      }
+      mapEl?.replaceChildren();
     };
   }, [amapKey, amapSecurityCode]);
 
@@ -492,7 +501,7 @@ const VenueSection = ({ bgColor = 'white' }: VenueSectionProps) => {
       ) : (
         <div style={{ position: 'relative' }}>
           <MapContainer ref={mapRef} id={AMAP_CONTAINER_ID} />
-          {!mapLoaded && <MapLoading>Loading map...{debugInfo}</MapLoading>}
+          {!mapLoaded && <MapLoading>Loading map…</MapLoading>}
         </div>
       )}
 

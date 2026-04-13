@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import APP_VERSION from '../config/version';
 
 const CacheManager = () => {
   useEffect(() => {
@@ -9,11 +8,19 @@ const CacheManager = () => {
       try {
         const STORAGE_KEY = 'wedding_app_version';
         const storedVersion = localStorage.getItem(STORAGE_KEY);
-        const currentVersion = APP_VERSION.version;
-        
+
+        const res = await fetch('/build-version.json', { cache: 'no-store' });
+        if (!res.ok) return; // Run `node scripts/update-version.js` after clone if missing locally
+        const manifest = (await res.json()) as {
+          version?: string;
+          buildTime?: string;
+        };
+        const currentVersion = manifest.version;
+        if (!currentVersion) return;
+
         console.log('Stored version:', storedVersion);
         console.log('Current version:', currentVersion);
-        console.log('Build time:', APP_VERSION.buildTime);
+        console.log('Build time:', manifest.buildTime ?? '');
         
         if (storedVersion !== currentVersion) {
           console.log('🔄 New version detected! Clearing cache...');

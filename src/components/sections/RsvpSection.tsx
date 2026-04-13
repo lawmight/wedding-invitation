@@ -15,6 +15,8 @@ const RsvpSection = ({ bgColor = 'white' }: RsvpSectionProps) => {
     guestCount: 1,
     side: '' as 'BRIDE' | 'GROOM' | '',
     hasMeal: null as boolean | null,
+    /** Honeypot — leave empty; bots often fill hidden fields. */
+    website: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{
@@ -102,6 +104,7 @@ const RsvpSection = ({ bgColor = 'white' }: RsvpSectionProps) => {
           guestCount: formData.isAttending ? formData.guestCount : 0,
           hasMeal: formData.isAttending ? formData.hasMeal : false,
           timestamp: now.toISOString(),
+          website: formData.website,
         }),
       });
       
@@ -116,6 +119,7 @@ const RsvpSection = ({ bgColor = 'white' }: RsvpSectionProps) => {
           guestCount: 1,
           side: '',
           hasMeal: null,
+          website: '',
         });
       } else {
         throw new Error('서버 응답 오류');
@@ -148,6 +152,15 @@ const RsvpSection = ({ bgColor = 'white' }: RsvpSectionProps) => {
       )}
       
       <RsvpForm onSubmit={handleSubmit}>
+        <HoneypotInput
+          type="text"
+          name="website"
+          value={formData.website}
+          onChange={handleChange}
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+        />
         <FormGroup>
           <Label htmlFor="name">Name</Label>
           <Input
@@ -306,6 +319,15 @@ const RsvpForm = styled.form`
   max-width: 36rem;
   margin: 0 auto;
   text-align: left;
+`;
+
+const HoneypotInput = styled.input`
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 `;
 
 const FormGroup = styled.div`

@@ -61,17 +61,20 @@ const GallerySection = ({ bgColor = 'white' }: GallerySectionProps) => {
       try {
         setIsLoading(true);
         const response = await fetch('/api/gallery');
-        
-        if (!response.ok) {
+        let data: { error?: string; images?: string[] } = {};
+        try {
+          data = await response.json();
+        } catch {
           throw new Error('Failed to load gallery images');
         }
-        
-        const data = await response.json();
-        
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load gallery images');
+        }
+
         if (data.images && data.images.length > 0) {
           setImages(data.images);
         } else {
-          // API에서 이미지를 가져오지 못한 경우 기본 설정 사용
           setImages(weddingConfig.gallery.images);
         }
       } catch (err) {
